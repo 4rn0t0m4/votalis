@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Account\ModerationController as AccountModerationController;
 use App\Http\Controllers\Account\SecurityController;
 use App\Http\Controllers\Committee\ThemeController as CommitteeThemeController;
 use App\Http\Controllers\Committee\TradeoffController as CommitteeTradeoffController;
+use App\Http\Controllers\Moderation\AppealController;
 use App\Http\Controllers\Moderation\CaseController;
 use App\Http\Controllers\Moderation\QueueController;
 use App\Http\Controllers\ModerationLogController;
@@ -42,6 +44,13 @@ Route::middleware(['auth', 'verified', 'can:moderate'])->prefix('moderation')->n
     Route::post('/dossiers/{type}/{id}/conserver', [CaseController::class, 'keep'])->whereNumber('id')->name('case.keep');
     Route::post('/dossiers/{type}/{id}/masquer', [CaseController::class, 'hide'])->whereNumber('id')->name('case.hide');
     Route::post('/dossiers/{type}/{id}/reformulation', [CaseController::class, 'requestRewrite'])->whereNumber('id')->name('case.rewrite');
+
+    Route::middleware('can:arbitrate-appeals')->group(function () {
+        Route::post('/dossiers/{type}/{id}/suspendre', [CaseController::class, 'suspend'])->whereNumber('id')->name('case.suspend');
+        Route::get('/contestations', [AppealController::class, 'index'])->name('appeals.index');
+        Route::get('/contestations/{appeal}', [AppealController::class, 'show'])->name('appeals.show');
+        Route::post('/contestations/{appeal}', [AppealController::class, 'decide'])->name('appeals.decide');
+    });
 });
 
 Route::get('/propositions/{proposal}/{slug?}', [ProposalController::class, 'show'])->whereNumber('proposal')->name('proposals.show');
@@ -53,6 +62,9 @@ Route::get('/arbitrages/{tradeoff}/resultats', [TradeoffController::class, 'resu
 
 Route::middleware(['auth', 'verified'])->prefix('mon-compte')->name('account.')->group(function () {
     Route::view('/', 'account.show')->name('show');
+    Route::get('/moderation', [AccountModerationController::class, 'index'])->name('moderation.index');
+    Route::get('/moderation/contester/{entry}', [AccountModerationController::class, 'create'])->whereNumber('entry')->name('moderation.appeal');
+    Route::post('/moderation/contester/{entry}', [AccountModerationController::class, 'store'])->whereNumber('entry')->name('moderation.appeal.store');
 });
 
 Route::middleware('auth')->prefix('mon-compte')->group(function () {

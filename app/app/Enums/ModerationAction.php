@@ -13,7 +13,6 @@ enum ModerationAction: string
     case Hide = 'hide';
     case RequestRewrite = 'request_rewrite';
     case RewriteReceived = 'rewrite_received';
-    case Restore = 'restore';
     case Suspend = 'suspend';
     case AppealConfirmed = 'appeal_confirmed';
     case AppealOverturned = 'appeal_overturned';
@@ -26,20 +25,15 @@ enum ModerationAction: string
             self::Hide => 'Masqué',
             self::RequestRewrite => 'Reformulation demandée',
             self::RewriteReceived => 'Reformulation reçue',
-            self::Restore => 'Rétabli',
             self::Suspend => 'Compte suspendu',
             self::AppealConfirmed => 'Contestation rejetée',
             self::AppealOverturned => 'Contestation acceptée',
         };
     }
 
-    /**
-     * Actions qu'un modérateur peut prendre depuis la file.
-     *
-     * @return list<self>
-     */
-    public static function moderatorChoices(): array
+    /** Décisions que l'auteur peut contester une fois (CDC section 6). */
+    public function isAppealable(): bool
     {
-        return [self::Keep, self::Hide, self::RequestRewrite];
+        return in_array($this, [self::Hide, self::RequestRewrite, self::Suspend], true);
     }
 }

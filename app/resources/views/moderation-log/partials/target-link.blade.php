@@ -1,8 +1,10 @@
 @php($target = $entry->target)
-@if ($entry->showsTarget() && $target !== null)
+@if ($entry->target_type === 'user')
+    <span class="text-ink-500">· titulaire non identifié</span>
+@elseif ($entry->showsTarget() && $target !== null)
     @if ($target instanceof \App\Models\Proposal)
         · <a href="{{ $target->url() }}" class="underline">{{ $target->title }}</a>
-    @elseif ($target->proposal)
+    @elseif ($target instanceof \App\Models\Argument && $target->proposal)
         · <a href="{{ $target->url() }}" class="underline">sur « {{ $target->proposal->title }} »</a>
     @endif
 @elseif (! $entry->showsTarget())

@@ -9,7 +9,7 @@
     <div class="mt-6 grid gap-8 lg:grid-cols-2">
         <form method="POST" action="{{ $tradeoff->exists ? route('committee.tradeoffs.update', $tradeoff) : route('committee.tradeoffs.store') }}" class="max-w-lg">
             @csrf
-            @if ($tradeoff->exists) @method('PUT') @endif
+            @if ($tradeoff->exists) @method('PUT')@endif
             <h2 class="mb-3 text-lg font-semibold">Exercice</h2>
             <x-form.field name="title" label="Titre" required :value="$tradeoff->title" maxlength="120" help="Ex. « Trouver 40 milliards d’économies ou de recettes »." />
             <div class="mb-4">

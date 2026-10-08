@@ -12,6 +12,7 @@ use App\Models\Argument;
 use App\Models\ModerationLogEntry;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Notifications\ModerationNotice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -67,7 +68,10 @@ class ModerationService
                 ...($target instanceof Proposal ? ['rewrite_allowed_until' => null] : []),
             ])->save();
 
-            return $this->close($target, $this->log($moderator, $target, ModerationAction::Hide, $motive, $details));
+            $entry = $this->close($target, $this->log($moderator, $target, ModerationAction::Hide, $motive, $details));
+            $target->author?->notify(new ModerationNotice(ModerationNotice::DECISION));
+
+            return $entry;
         });
     }
 
@@ -92,7 +96,52 @@ class ModerationService
                 'rewrite_allowed_until' => now()->addDays((int) config('votalis.moderation.rewrite_days', 14)),
             ])->save();
 
-            return $this->close($target, $this->log($moderator, $target, ModerationAction::RequestRewrite, $motive));
+            $entry = $this->close($target, $this->log($moderator, $target, ModerationAction::RequestRewrite, $motive));
+            $target->author?->notify(new ModerationNotice(ModerationNotice::DECISION));
+
+            return $entry;
+        });
+    }
+
+    /**
+     * Suspendre un compte participant : réservé au comité éditorial, journalisé sans pseudonyme,
+     * contestable. Le compte peut encore lire et contester (Gate `participate`).
+     *
+     * @param  int|null  $days  Durée en jours ; null pour une suspension sans terme.
+     *
+     * @throws ValidationException
+     */
+    public function suspend(User $editorial, User $target, ReportMotive $motive, ?int $days = null): ModerationLogEntry
+    {
+        Gate::forUser($editorial)->authorize('arbitrate-appeals');
+
+        if ($target->id === $editorial->id || $target->role->isPrivileged()) {
+            throw ValidationException::withMessages(['suspend' => [__('Seul un compte participant peut être suspendu.')]]);
+        }
+
+        if ($days !== null && ($days < 1 || $days > 3650)) {
+            throw ValidationException::withMessages(['days' => [__('La durée est comprise entre 1 et 3650 jours, ou vide pour une suspension sans terme.')]]);
+        }
+
+        return DB::transaction(function () use ($editorial, $target, $motive, $days): ModerationLogEntry {
+            $target->forceFill([
+                'suspended_at' => now(),
+                'suspended_until' => $days === null ? null : now()->addDays($days),
+            ])->save();
+
+            $entry = ModerationLogEntry::create([
+                'target_type' => 'user',
+                'target_id' => $target->id,
+                'action' => ModerationAction::Suspend,
+                'motive' => $motive,
+                'actor_id' => $editorial->id,
+                'actor_role' => ActorRole::Editorial,
+                'details' => $days === null ? null : ['days' => $days],
+            ]);
+
+            $target->notify(new ModerationNotice(ModerationNotice::ACCOUNT));
+
+            return $entry;
         });
     }
 

@@ -69,6 +69,37 @@ return [
     ],
 
     /*
+    | Service d'embeddings interne (consensus/). Seuls les hôtes listés sont joignables :
+    | aucun texte ne doit sortir du réseau privé (CDC 4.5, 9).
+    */
+    'embeddings' => [
+        'url' => env('EMBEDDINGS_URL', 'http://localhost:8001'),
+        'allowed_hosts' => array_filter(explode(',', (string) env('EMBEDDINGS_ALLOWED_HOSTS', 'embeddings,localhost,127.0.0.1'))),
+        'timeout' => (float) env('EMBEDDINGS_TIMEOUT', 5.0),
+        'dimension' => (int) env('EMBEDDINGS_DIMENSION', 384),
+        'version' => env('EMBEDDINGS_VERSION', 'multilingual-e5-small@1'),
+    ],
+
+    /*
+    | Détection de doublons au dépôt : similarité cosinus minimale et nombre de suggestions.
+    | Calibrage multilingual-e5-small (8 oct. 2026) : deux formulations d'une même mesure ≈ 0,90-0,93,
+    | deux mesures différentes d'un même domaine ≈ 0,85-0,88, hors sujet ≈ 0,80-0,85.
+    */
+    'duplicates' => [
+        'threshold' => (float) env('DUPLICATES_THRESHOLD', 0.89),
+        'limit' => (int) env('DUPLICATES_LIMIT', 5),
+        'min_title_chars' => 10,
+        'min_measure_chars' => 30,
+    ],
+
+    /*
+    | Regroupement des conditions « oui, à condition que… » : similarité minimale pour fusionner.
+    */
+    'conditions' => [
+        'threshold' => (float) env('CONDITIONS_THRESHOLD', 0.86),
+    ],
+
+    /*
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),

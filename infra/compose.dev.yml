@@ -16,11 +16,37 @@ services:
       DB_HOST: db
       REDIS_HOST: redis
       MAIL_HOST: mailpit
+      EMBEDDINGS_URL: http://embeddings:8000
+      MEILISEARCH_HOST: http://meilisearch:7700
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+
+  # Traite les files Redis (embeddings, regroupement des conditions, indexation Meilisearch).
+  worker:
+    build:
+      context: ./docker/php
+      args:
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=2", "--max-time=3600"]
+    volumes:
+      - ../app:/var/www/app
+    environment:
+      APP_ENV: local
+      DB_HOST: db
+      REDIS_HOST: redis
+      MAIL_HOST: mailpit
+      EMBEDDINGS_URL: http://embeddings:8000
+      MEILISEARCH_HOST: http://meilisearch:7700
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
   web:
     image: nginx:1.27-alpine
@@ -61,6 +87,25 @@ services:
       - "8025:8025"
       - "1025:1025"
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:?MEILISEARCH_KEY manquant dans app/.env}
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_ENV: development
+    ports:
+      - "${MEILISEARCH_PORT_HOST:-7700}:7700"
+    volumes:
+      - meili-data:/meili_data
+
+  embeddings:
+    build:
+      context: ../consensus
+    # Aucun port publié vers l'hôte en production ; en développement, 8001 permet d'appeler
+    # le service depuis les commandes Artisan et les tests lancés sur l'hôte.
+    ports:
+      - "${EMBEDDINGS_PORT_HOST:-8001}:8000"
+
   node:
     image: node:22-alpine
     working_dir: /var/www/app
@@ -72,3 +117,4 @@ services:
 
 volumes:
   db-data:
+  meili-data:

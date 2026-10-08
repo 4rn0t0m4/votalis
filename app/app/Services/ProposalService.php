@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ProposalOrigin;
 use App\Enums\RevisionKind;
+use App\Jobs\ComputeProposalEmbedding;
 use App\Models\Proposal;
 use App\Models\Theme;
 use App\Models\User;
@@ -59,6 +60,8 @@ class ProposalService
             $this->syncSources($proposal, $data);
             $this->record($proposal, $author, RevisionKind::Content);
 
+            ComputeProposalEmbedding::dispatch($proposal->id)->afterCommit();
+
             return $proposal;
         });
     }
@@ -97,6 +100,10 @@ class ProposalService
 
             $this->syncSources($proposal, $data);
             $this->record($proposal, $author, $kind);
+
+            if ($kind === RevisionKind::Content) {
+                ComputeProposalEmbedding::dispatch($proposal->id)->afterCommit();
+            }
 
             return $proposal->refresh();
         });

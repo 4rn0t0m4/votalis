@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Enums\ProposalStatus;
 use App\Enums\VoteValue;
+use App\Jobs\RegroupVoteConditions;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Models\Vote;
+use App\Models\VoteConditionGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -41,7 +43,7 @@ class VoteService
 
         $condition = $this->normalizeCondition($condition, $desirable, $necessary);
 
-        return DB::transaction(function () use ($user, $proposal, $desirable, $necessary, $condition, $afterArguments): Vote {
+        $vote = DB::transaction(function () use ($user, $proposal, $desirable, $necessary, $condition, $afterArguments): Vote {
             /** @var Vote|null $vote */
             $vote = Vote::query()->where('participant_id', $user->id)->where('proposal_id', $proposal->id)->lockForUpdate()->first();
 
@@ -81,6 +83,12 @@ class VoteService
 
             return $vote;
         });
+
+        if ($vote->wasRecentlyCreated ? $condition !== null : $vote->wasChanged('condition')) {
+            RegroupVoteConditions::dispatch($proposal->id);
+        }
+
+        return $vote;
     }
 
     public function voteOf(?User $user, Proposal $proposal): ?Vote
@@ -95,7 +103,7 @@ class VoteService
     /**
      * Résultats détaillés : effectifs et parts pour chaque question, oui conditionnels, conditions.
      *
-     * @return array{total: int, desirable: array<string, int>, necessary: array<string, int>, conditional: int, conditions: list<string>}
+     * @return array{total: int, desirable: array<string, int>, necessary: array<string, int>, conditional: int, conditions: array<int, string>}
      */
     public function results(Proposal $proposal): array
     {
@@ -120,10 +128,18 @@ class VoteService
             $result['necessary'][self::key((int) $row->necessary)] += $n;
         }
 
-        /** @var list<string> $conditions */
-        $conditions = Vote::query()->where('proposal_id', $proposal->id)->whereNotNull('condition')
-            ->orderByDesc('updated_at')->limit(50)->pluck('condition')->all();
-        $result['conditions'] = $conditions;
+        $groups = VoteConditionGroup::query()->where('proposal_id', $proposal->id)->orderByDesc('count')->get();
+
+        if ($groups->isNotEmpty()) {
+            /** @var array<int, string> $labels */
+            $labels = $groups->map(fn (VoteConditionGroup $g) => $g->count > 1 ? $g->label.' ('.$g->count.')' : $g->label)->values()->all();
+            $result['conditions'] = $labels;
+        } else {
+            /** @var array<int, string> $conditions */
+            $conditions = Vote::query()->where('proposal_id', $proposal->id)->whereNotNull('condition')
+                ->orderByDesc('updated_at')->limit(50)->pluck('condition')->all();
+            $result['conditions'] = $conditions;
+        }
 
         return $result;
     }

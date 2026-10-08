@@ -1,37 +1,43 @@
 <x-layouts.app :title="$proposal->title">
-    <nav aria-label="Fil d'Ariane" class="text-sm text-ink-500">
+    <nav aria-label="Fil d'Ariane" class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-700">
         <a href="{{ route('themes.index') }}" class="hover:underline">Thèmes</a>
         @if ($proposal->theme->parent)
-            › <a href="{{ route('themes.show', $proposal->theme->parent) }}" class="hover:underline">{{ $proposal->theme->parent->name }}</a>
+            <x-icon name="chevron-right" class="size-4" /><a href="{{ route('themes.show', $proposal->theme->parent) }}" class="hover:underline">{{ $proposal->theme->parent->name }}</a>
         @endif
-        › <a href="{{ route('themes.show', $proposal->theme) }}" class="hover:underline">{{ $proposal->theme->name }}</a>
+        <x-icon name="chevron-right" class="size-4" /><a href="{{ route('themes.show', $proposal->theme) }}" class="hover:underline">{{ $proposal->theme->name }}</a>
     </nav>
 
     @if ($moderationEntry ?? null)
-        <x-alert type="info" class="mt-4">
-            @if ($proposal->awaitsRewrite())
-                Reformulation demandée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif : cette fiche est invisible du public jusqu'à sa reformulation @if ($proposal->rewrite_allowed_until), possible jusqu'au {{ $proposal->rewrite_allowed_until->translatedFormat('j F Y') }}@endif.
-            @else
-                Cette fiche est masquée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif et n'est visible que de son auteur et de la modération.
-            @endif
-            <a href="{{ $moderationEntry->url() }}" class="underline">Voir la décision au journal public</a>.
+        <x-alert type="info" class="mt-5">
+            <span>
+                @if ($proposal->awaitsRewrite())
+                    Reformulation demandée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif : cette fiche est invisible du public jusqu'à sa reformulation @if ($proposal->rewrite_allowed_until), possible jusqu'au {{ $proposal->rewrite_allowed_until->translatedFormat('j F Y') }}@endif.
+                @else
+                    Cette fiche est masquée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif et n'est visible que de son auteur et de la modération.
+                @endif
+                <a href="{{ $moderationEntry->url() }}" class="link">Voir la décision au journal public</a>.
+            </span>
         </x-alert>
     @endif
 
-    <article class="mt-3">
-        <header>
-            <h1 class="text-2xl font-semibold">{{ $proposal->title }}</h1>
-            <p class="mt-2 text-sm text-ink-500">
-                {{ $proposal->origin->label() }}@if ($proposal->seed_source) ({{ $proposal->seed_source }})@endif
-                · {{ $proposal->authorName() }}
-                · publiée le {{ $proposal->created_at?->translatedFormat('j F Y') }}
-                @if ($proposal->revisions->count() > 1)
-                    · modifiée le {{ $proposal->revisions->first()?->created_at->translatedFormat('j F Y') }}
+    <article class="mt-5">
+        <header class="rise">
+            <h1 class="text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl lg:text-5xl">{{ $proposal->title }}</h1>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+                <x-pill tone="lagoon">{{ $proposal->origin->label() }}</x-pill>
+                <x-pill tone="sand">{{ $proposal->theme->fullName() }}</x-pill>
+                @if ($proposal->seed_source)
+                    <x-pill tone="outline">{{ $proposal->seed_source }}</x-pill>
                 @endif
-            </p>
-            <p class="mt-2 flex gap-4 text-sm">
+            </div>
+            <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink-700">
+                <span>Proposée par <strong>{{ $proposal->authorName() }}</strong></span>
+                <span>publiée le {{ $proposal->created_at?->translatedFormat('j F Y') }}</span>
+                @if ($proposal->revisions->count() > 1)
+                    <span>modifiée le {{ $proposal->revisions->first()?->created_at->translatedFormat('j F Y') }}</span>
+                @endif
                 @can('update', $proposal)
-                    <a href="{{ route('proposals.edit', $proposal) }}" class="underline">{{ $proposal->awaitsRewrite() ? 'Reformuler' : ($proposal->isLocked() ? 'Corriger la forme' : 'Modifier') }}</a>
+                    <a href="{{ route('proposals.edit', $proposal) }}" class="link">{{ $proposal->awaitsRewrite() ? 'Reformuler' : ($proposal->isLocked() ? 'Corriger la forme' : 'Modifier') }}</a>
                 @endcan
                 @can('report', $proposal)
                     <a href="{{ route('reports.create', ['type' => 'proposition', 'id' => $proposal->id]) }}" class="text-ink-500 underline">Signaler</a>
@@ -39,39 +45,43 @@
             </p>
         </header>
 
-        <div class="mt-6 grid gap-6 lg:grid-cols-3">
-            <div class="space-y-6 lg:col-span-2">
-                <section class="rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="probleme">
-                    <h2 id="probleme" class="text-sm font-semibold uppercase tracking-wide text-ink-500">Problème visé</h2>
-                    <p class="mt-2 whitespace-pre-line">{{ $proposal->problem }}</p>
-                </section>
-                <section class="rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="mesure">
-                    <h2 id="mesure" class="text-sm font-semibold uppercase tracking-wide text-ink-500">Mesure proposée</h2>
-                    <p class="mt-2 whitespace-pre-line">{{ $proposal->measure }}</p>
-                </section>
+        <div class="mt-8 grid gap-5 lg:grid-cols-12">
+            <div class="flex flex-col gap-5 lg:col-span-7">
+                <x-card as="section" aria-labelledby="probleme" class="rise">
+                    <h2 id="probleme" class="eyebrow flex items-center gap-2 text-accent-700"><span class="size-3 rounded-full bg-accent-600" aria-hidden="true"></span>Problème visé</h2>
+                    <p class="mt-3 text-lg leading-relaxed whitespace-pre-line">{{ $proposal->problem }}</p>
+                </x-card>
+                <x-card as="section" aria-labelledby="mesure" class="rise rise-2">
+                    <h2 id="mesure" class="eyebrow flex items-center gap-2 text-accent-700"><span class="size-3 rounded-full bg-accent-600" aria-hidden="true"></span>Mesure proposée</h2>
+                    <p class="mt-3 text-lg leading-relaxed whitespace-pre-line">{{ $proposal->measure }}</p>
+                </x-card>
             </div>
-            <aside class="space-y-6">
-                <section class="rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="cout">
-                    <h2 id="cout" class="text-sm font-semibold uppercase tracking-wide text-ink-500">Coût ou impact estimé</h2>
-                    <p class="mt-2 text-sm">{{ $proposal->cost_unknown ? 'Inconnu' : $proposal->cost_estimate }}</p>
-                </section>
-                <section class="rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="sources">
-                    <h2 id="sources" class="text-sm font-semibold uppercase tracking-wide text-ink-500">Sources</h2>
-                    <ul class="mt-2 space-y-1 text-sm">
+            <aside class="flex flex-col gap-5 lg:col-span-5">
+                <x-card tone="sand" as="section" aria-labelledby="cout" class="rise rise-2">
+                    <h2 id="cout" class="eyebrow flex items-center gap-2 text-plum-700"><span class="size-3 rounded-full bg-plum-600" aria-hidden="true"></span>Coût ou impact estimé</h2>
+                    <p class="mt-3 text-2xl leading-snug font-extrabold tracking-tight">{{ $proposal->cost_unknown ? 'Inconnu' : $proposal->cost_estimate }}</p>
+                </x-card>
+                <x-card as="section" aria-labelledby="sources" class="rise rise-3">
+                    <h2 id="sources" class="eyebrow flex items-center gap-2 text-ink-700"><span class="size-3 rounded-full bg-ink-900" aria-hidden="true"></span>Sources</h2>
+                    <ul class="mt-3 space-y-2 text-sm">
                         @foreach ($proposal->sources as $source)
-                            <li>
+                            <li class="flex gap-2">
+                                <x-icon name="link" class="mt-0.5 size-4 text-ink-500" />
                                 @if ($source->is_personal)
-                                    Proposition personnelle
+                                    <span>Proposition personnelle</span>
                                 @else
-                                    <a href="{{ $source->url }}" rel="noopener nofollow" class="break-all underline">{{ $source->label ?? $source->url }}</a>
+                                    <a href="{{ $source->url }}" rel="noopener nofollow" class="link break-all">{{ $source->label ?? $source->url }}</a>
                                 @endif
                             </li>
                         @endforeach
                     </ul>
-                </section>
-                <section class="rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="historique">
-                    <h2 id="historique" class="text-sm font-semibold uppercase tracking-wide text-ink-500">Historique des modifications</h2>
-                    <ol class="mt-2 space-y-1 text-sm">
+                </x-card>
+                <details class="card-flat rise rise-4 group">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-2 font-bold [&::-webkit-details-marker]:hidden">
+                        Historique des modifications
+                        <x-icon name="chevron-down" class="size-5 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <ol class="mt-3 space-y-1.5 text-sm text-ink-700">
                         @foreach ($proposal->revisions as $revision)
                             <li>
                                 {{ $revision->created_at->translatedFormat('j F Y à H\hi') }} ·
@@ -80,7 +90,7 @@
                             </li>
                         @endforeach
                     </ol>
-                </section>
+                </details>
             </aside>
         </div>
 
@@ -88,9 +98,12 @@
             <livewire:vote-box :proposal="$proposal" :key="'vote-'.$proposal->id" />
         </div>
 
-        <section class="mt-8" aria-labelledby="arguments">
-            <h2 id="arguments" class="sr-only">Arguments</h2>
-            <div class="grid gap-6 md:grid-cols-2">
+        <section class="mt-10" aria-labelledby="arguments">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h2 id="arguments" class="text-2xl font-extrabold tracking-tight sm:text-3xl">Les arguments</h2>
+                <p class="text-sm text-ink-700">Même traitement pour les deux camps. « Utile » n'est pas un vote.</p>
+            </div>
+            <div class="mt-5 grid gap-5 md:grid-cols-2">
                 <livewire:argument-column :proposal="$proposal" :side="\App\Enums\ArgumentSide::For" :key="'for-'.$proposal->id" />
                 <livewire:argument-column :proposal="$proposal" :side="\App\Enums\ArgumentSide::Against" :key="'against-'.$proposal->id" />
             </div>

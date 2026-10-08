@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Proposal;
 use App\Models\User;
+use App\Models\Vote;
 use App\Services\QuickVoteSelector;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
@@ -57,7 +58,14 @@ class QuickVote extends Component
             ? Proposal::query()->with(['theme.parent', 'sources', 'author'])->find($this->proposalId)
             : null;
 
-        return view('livewire.quick-vote', ['proposal' => $proposal]);
+        /** @var User $user */
+        $user = auth()->user();
+
+        return view('livewire.quick-vote', [
+            'proposal' => $proposal,
+            // Compteur de session, privé : les avis donnés aujourd'hui par le participant.
+            'votesToday' => Vote::query()->where('participant_id', $user->id)->where('created_at', '>=', now()->startOfDay())->count(),
+        ]);
     }
 
     private function pick(QuickVoteSelector $selector): void

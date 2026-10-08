@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Proposal;
 use App\Models\Tradeoff;
 use App\Models\User;
+use App\Services\Journey;
 use App\Services\TradeoffService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +32,9 @@ class TradeoffExercise extends Component
     public string $suggestionNote = '';
 
     public bool $editing = false;
+
+    /** @var list<string> Jalons atteints par la validation, célébrés une fois. */
+    public array $celebrations = [];
 
     public function mount(Tradeoff $tradeoff): void
     {
@@ -72,6 +76,7 @@ class TradeoffExercise extends Component
         $service->answer($user, $tradeoff, $this->selected, $this->conditions);
 
         $this->editing = false;
+        $this->celebrations = array_map(fn ($m) => $m->value, app(Journey::class)->takeFresh($user));
         session()->flash('tradeoff-status', 'Votre combinaison est enregistrée. Seule la dernière compte ; votre historique reste visible ci-dessous.');
     }
 

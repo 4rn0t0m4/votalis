@@ -112,6 +112,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->belongsToMany(Argument::class, 'argument_marks', 'participant_id', 'argument_id');
     }
 
+    /**
+     * Jalons du parcours personnel : lecture seule, jamais chargés dans une vue publique.
+     *
+     * @return HasMany<UserMilestone, $this>
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(UserMilestone::class, 'participant_id');
+    }
+
     /** @return HasMany<Appeal, $this> */
     public function appeals(): HasMany
     {

@@ -1,14 +1,14 @@
 @if ($paginator->hasPages())
     <nav aria-label="Pagination" class="flex flex-wrap items-center justify-between gap-3 text-sm">
-        <p class="text-ink-500">
+        <p class="text-ink-700">
             Résultats {{ $paginator->firstItem() }} à {{ $paginator->lastItem() }} sur {{ $paginator->total() }}
         </p>
-        <ul class="flex items-center gap-1">
+        <ul class="flex items-center gap-1.5">
             <li>
                 @if ($paginator->onFirstPage())
-                    <span class="inline-flex min-h-11 items-center rounded border border-ink-200 px-3 text-ink-500" aria-hidden="true">‹ Précédent</span>
+                    <span class="btn border-2 border-ink-100 bg-ink-100 text-ink-700" aria-hidden="true">‹ Précédent</span>
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex min-h-11 items-center rounded border border-ink-300 bg-white px-3 hover:bg-ink-100">‹ Précédent<span class="sr-only">e page</span></a>
+                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="btn btn-secondary">‹ Précédent<span class="sr-only">e page</span></a>
                 @endif
             </li>
             @foreach ($elements as $element)
@@ -19,9 +19,9 @@
                     @foreach ($element as $page => $url)
                         <li>
                             @if ($page == $paginator->currentPage())
-                                <span aria-current="page" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-accent-600 px-3 font-medium text-white"><span class="sr-only">Page </span>{{ $page }}</span>
+                                <span aria-current="page" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-ink-900 px-3 font-bold text-white"><span class="sr-only">Page </span>{{ $page }}</span>
                             @else
-                                <a href="{{ $url }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-ink-300 bg-white px-3 hover:bg-ink-100"><span class="sr-only">Page </span>{{ $page }}</a>
+                                <a href="{{ $url }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-ink-200 bg-white px-3 font-bold text-ink-900 no-underline hover:border-ink-900"><span class="sr-only">Page </span>{{ $page }}</a>
                             @endif
                         </li>
                     @endforeach
@@ -29,9 +29,9 @@
             @endforeach
             <li>
                 @if ($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex min-h-11 items-center rounded border border-ink-300 bg-white px-3 hover:bg-ink-100">Suivant<span class="sr-only">e page</span> ›</a>
+                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="btn btn-secondary">Suivant<span class="sr-only">e page</span> ›</a>
                 @else
-                    <span class="inline-flex min-h-11 items-center rounded border border-ink-200 px-3 text-ink-500" aria-hidden="true">Suivant ›</span>
+                    <span class="btn border-2 border-ink-100 bg-ink-100 text-ink-700" aria-hidden="true">Suivant ›</span>
                 @endif
             </li>
         </ul>

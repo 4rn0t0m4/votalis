@@ -1,18 +1,18 @@
 <x-layouts.app title="Signaler un contenu">
     <article class="max-w-2xl">
-        <h1 class="text-2xl font-semibold">Signaler {{ $target instanceof \App\Models\Proposal ? 'une proposition' : 'un argument' }}</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Signaler {{ $target instanceof \App\Models\Proposal ? 'une proposition' : 'un argument' }}</h1>
 
-        <blockquote class="mt-4 rounded-lg border border-ink-200 bg-white p-4 text-sm">
+        <blockquote class="mt-4 card text-sm">
             @if ($target instanceof \App\Models\Proposal)
                 <p class="font-medium">{{ $target->title }}</p>
                 <p class="mt-1 text-ink-700">{{ Str::limit($target->measure, 300) }}</p>
             @else
                 <p class="text-ink-700">{{ $target->body }}</p>
-                <p class="mt-1 text-xs text-ink-500">Argument {{ $target->side->label() }} sur « {{ $target->proposal->title }} »</p>
+                <p class="mt-1 text-xs text-ink-700">Argument {{ $target->side->label() }} sur « {{ $target->proposal->title }} »</p>
             @endif
         </blockquote>
 
-        <p class="mt-4 text-sm text-ink-700">Un signalement est examiné par la modération ; la décision, motivée, est inscrite au <a href="{{ route('moderation-log.index') }}" class="underline">journal public</a>. Le contenu reste visible jusqu'à la décision, sauf s'il est signalé comme illégal. Votre identité n'est transmise ni à l'auteur ni aux modérateurs. Les motifs sont décrits dans la <a href="{{ route('charter') }}" class="underline">charte de modération</a>.</p>
+        <p class="mt-4 text-sm text-ink-700">Un signalement est examiné par la modération ; la décision, motivée, est inscrite au <a href="{{ route('moderation-log.index') }}" class="link">journal public</a>. Le contenu reste visible jusqu'à la décision, sauf s'il est signalé comme illégal. Votre identité n'est transmise ni à l'auteur ni aux modérateurs. Les motifs sont décrits dans la <a href="{{ route('charter') }}" class="link">charte de modération</a>.</p>
 
         <form method="POST" action="{{ route('reports.store', ['type' => $type, 'id' => $target->id]) }}" class="mt-6 space-y-5" novalidate>
             @csrf
@@ -32,15 +32,15 @@
             </fieldset>
 
             <div>
-                <label for="details" class="mb-1 block text-sm font-medium">Précision (facultative)</label>
-                <textarea id="details" name="details" rows="3" maxlength="300" class="block w-full rounded border border-ink-300 px-3 py-2 text-sm" @error('details') aria-invalid="true" @enderror>{{ old('details') }}</textarea>
-                <p class="mt-1 text-xs text-ink-500">300 caractères maximum. Ne mentionnez aucune donnée personnelle.</p>
+                <label for="details" class="mb-1.5 block font-bold">Précision (facultative)</label>
+                <textarea id="details" name="details" rows="3" maxlength="300" class="field" @error('details') aria-invalid="true" @enderror>{{ old('details') }}</textarea>
+                <p class="mt-1 text-xs text-ink-700">300 caractères maximum. Ne mentionnez aucune donnée personnelle.</p>
                 @error('details') <p class="mt-1 text-sm text-red-800">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex gap-3">
                 <x-button>Envoyer le signalement</x-button>
-                <a href="{{ $target->url() }}" class="inline-flex items-center rounded border border-ink-300 bg-white px-4 py-2 text-sm hover:bg-ink-100">Annuler</a>
+                <a href="{{ $target->url() }}" class="inline-flex items-center btn btn-secondary">Annuler</a>
             </div>
         </form>
     </article>

@@ -46,7 +46,7 @@ class ProposalService
             $this->caps->assertCanCreateProposal($author, $theme);
         }
 
-        return DB::transaction(function () use ($data, $author, $origin, $seedSource): Proposal {
+        $proposal = DB::transaction(function () use ($data, $author, $origin, $seedSource): Proposal {
             $proposal = Proposal::create([
                 'theme_id' => $data['theme_id'],
                 'author_id' => $author?->id,
@@ -66,6 +66,12 @@ class ProposalService
 
             return $proposal;
         });
+
+        if ($author !== null) {
+            app(Journey::class)->evaluate($author);
+        }
+
+        return $proposal;
     }
 
     /**

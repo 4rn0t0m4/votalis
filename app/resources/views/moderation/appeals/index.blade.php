@@ -1,10 +1,10 @@
 <x-layouts.app title="Contestations">
-    <h1 class="text-2xl font-semibold">Contestations</h1>
+    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Contestations</h1>
     <p class="mt-3 max-w-2xl text-sm text-ink-700">Le comité éditorial tranche chaque contestation. Vous ne pouvez pas traiter celle d'une décision que vous avez prise vous-même : elle est signalée ci-dessous et attend un autre membre.</p>
 
     <h2 class="mt-6 text-lg font-semibold">En attente ({{ $appeals->count() }})</h2>
     <table class="mt-3 w-full text-sm">
-        <thead class="text-left text-ink-500"><tr><th class="py-2">Déposée le</th><th class="py-2">Décision contestée</th><th class="py-2">Contenu</th><th class="py-2"><span class="sr-only">Action</span></th></tr></thead>
+        <thead class="text-left text-ink-700"><tr><th class="py-2">Déposée le</th><th class="py-2">Décision contestée</th><th class="py-2">Contenu</th><th class="py-2"><span class="sr-only">Action</span></th></tr></thead>
         <tbody class="divide-y divide-ink-200">
             @forelse ($appeals as $appeal)
                 @php($entry = $appeal->logEntry)
@@ -19,9 +19,9 @@
                     </td>
                     <td class="py-2 text-right">
                         @if ($entry->actor_id === $user->id)
-                            <span class="text-xs text-ink-500">Votre décision : un autre membre tranche</span>
+                            <span class="text-xs text-ink-700">Votre décision : un autre membre tranche</span>
                         @else
-                            <a href="{{ route('moderation.appeals.show', $appeal) }}" class="underline">Examiner</a>
+                            <a href="{{ route('moderation.appeals.show', $appeal) }}" class="link">Examiner</a>
                         @endif
                     </td>
                 </tr>

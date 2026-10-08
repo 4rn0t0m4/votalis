@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\VoteValue;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Services\Journey;
 use App\Services\VoteService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -34,6 +35,12 @@ class VoteBox extends Component
 
     public bool $revising = false;
 
+    /** Vote tout juste enregistré : écran de confirmation puis résultats. */
+    public bool $justVoted = false;
+
+    /** @var list<string> Jalons atteints par ce vote, célébrés une fois (clés de `Milestone`). */
+    public array $celebrations = [];
+
     public function mount(Proposal $proposal, bool $argumentsVisible = true): void
     {
         $this->proposalId = $proposal->id;
@@ -52,11 +59,14 @@ class VoteBox extends Component
         }
 
         $this->revising = true;
+        $this->justVoted = false;
+        $this->celebrations = [];
     }
 
     public function cancel(): void
     {
         $this->revising = false;
+        $this->celebrations = [];
     }
 
     public function vote(VoteService $service): void
@@ -87,6 +97,8 @@ class VoteBox extends Component
         );
 
         $this->revising = false;
+        $this->justVoted = true;
+        $this->celebrations = array_map(fn ($m) => $m->value, app(Journey::class)->takeFresh($user));
         $this->dispatch('voted', proposalId: $proposal->id);
     }
 

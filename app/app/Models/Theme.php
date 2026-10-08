@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ThemeIcon;
 use App\Enums\ThemeStatus;
 use Database\Factories\ThemeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,13 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $slug
  * @property string|null $description
+ * @property ThemeIcon|null $icon
  * @property ThemeStatus $status
  * @property int $position
  * @property-read Theme|null $parent
  * @property-read Collection<int, Theme> $children
  * @property-read Collection<int, Proposal> $proposals
  */
-#[Fillable(['parent_id', 'name', 'slug', 'description', 'status', 'position'])]
+#[Fillable(['parent_id', 'name', 'slug', 'description', 'icon', 'status', 'position'])]
 class Theme extends Model
 {
     /** @use HasFactory<ThemeFactory> */
@@ -35,7 +37,7 @@ class Theme extends Model
      */
     protected function casts(): array
     {
-        return ['status' => ThemeStatus::class];
+        return ['status' => ThemeStatus::class, 'icon' => ThemeIcon::class];
     }
 
     /** @return BelongsTo<Theme, $this> */

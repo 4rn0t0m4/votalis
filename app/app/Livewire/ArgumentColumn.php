@@ -8,6 +8,7 @@ use App\Models\Argument;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Services\ContributionCaps;
+use App\Services\Journey;
 use App\Services\ReadOnlyMode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,9 @@ class ArgumentColumn extends Component
     public string $body = '';
 
     public string $source_url = '';
+
+    /** @var list<string> Jalons atteints par la dernière action, célébrés une fois. */
+    public array $celebrations = [];
 
     public function mount(Proposal $proposal, ArgumentSide $side): void
     {
@@ -62,6 +66,7 @@ class ArgumentColumn extends Component
         ]);
 
         $this->reset('body', 'source_url');
+        $this->celebrate($user);
         $this->dispatch('argument-added');
     }
 
@@ -76,6 +81,14 @@ class ArgumentColumn extends Component
         $user = auth()->user();
 
         $user->markedArguments()->toggle([$argument->id]);
+        $this->celebrate($user);
+    }
+
+    private function celebrate(User $user): void
+    {
+        $journey = app(Journey::class);
+        $journey->evaluate($user);
+        $this->celebrations = array_map(fn ($m) => $m->value, $journey->takeFresh($user));
     }
 
     public function render(): View

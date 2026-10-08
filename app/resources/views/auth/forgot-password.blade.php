@@ -7,7 +7,7 @@
             <x-button class="w-full">Envoyer le lien</x-button>
         </form>
         <x-slot:footer>
-            <p><a href="{{ route('login') }}" class="underline">Retour à la connexion</a></p>
+            <p><a href="{{ route('login') }}" class="link">Retour à la connexion</a></p>
         </x-slot:footer>
     </x-auth-card>
 </x-layouts.app>

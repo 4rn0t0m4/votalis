@@ -13,11 +13,11 @@
             <div class="mb-4">
                 <div class="flex items-start gap-2">
                     <input id="consent" name="consent" type="checkbox" value="1" required aria-required="true" @checked(old('consent'))
-                        class="mt-1 h-4 w-4 rounded border-ink-300" @error('consent') aria-invalid="true" aria-describedby="consent-erreur" @enderror>
+                        class="mt-1 size-5 rounded border-ink-300 accent-accent-600" @error('consent') aria-invalid="true" aria-describedby="consent-erreur" @enderror>
                     <label for="consent" class="text-sm">
                         J'accepte que mes votes et contributions, qui peuvent révéler des opinions politiques, soient traités
                         pour faire fonctionner la plateforme, dans les conditions de la
-                        <a href="{{ route('privacy') }}" class="underline" target="_blank" rel="noopener">politique de confidentialité</a>. Ils sont liés à un identifiant interne, jamais à mon e-mail.
+                        <a href="{{ route('privacy') }}" class="link" target="_blank" rel="noopener">politique de confidentialité</a>. Ils sont liés à un identifiant interne, jamais à mon e-mail.
                     </label>
                 </div>
                 @error('consent')
@@ -29,7 +29,7 @@
         </form>
 
         <x-slot:footer>
-            <p>Déjà un compte ? <a href="{{ route('login') }}" class="underline">Se connecter</a></p>
+            <p>Déjà un compte ? <a href="{{ route('login') }}" class="link">Se connecter</a></p>
         </x-slot:footer>
     </x-auth-card>
 </x-layouts.app>

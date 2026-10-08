@@ -87,7 +87,7 @@ class TradeoffService
 
         sort($itemIds);
 
-        return DB::transaction(function () use ($user, $tradeoff, $itemIds, $cleanConditions, $total): TradeoffAnswer {
+        $answer = DB::transaction(function () use ($user, $tradeoff, $itemIds, $cleanConditions, $total): TradeoffAnswer {
             $answer = TradeoffAnswer::query()->where('participant_id', $user->id)->where('tradeoff_id', $tradeoff->id)->lockForUpdate()->first();
 
             $attributes = ['item_ids' => $itemIds, 'conditions' => $cleanConditions, 'total' => $total];
@@ -103,6 +103,10 @@ class TradeoffService
 
             return $answer;
         });
+
+        app(Journey::class)->evaluate($user);
+
+        return $answer;
     }
 
     public function answerOf(?User $user, Tradeoff $tradeoff): ?TradeoffAnswer

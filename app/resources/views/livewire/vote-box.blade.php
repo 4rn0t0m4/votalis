@@ -29,8 +29,8 @@
                     <legend class="text-sm font-medium">Souhaitable pour vous ?</legend>
                     <div class="mt-2 flex flex-wrap gap-3">
                         @foreach ($values as $value)
-                            <label class="inline-flex items-center gap-1.5 text-sm">
-                                <input type="radio" wire:model="desirable" value="{{ $value->value }}" name="desirable-{{ $proposal->id }}" class="h-4 w-4"> {{ $value->label() }}
+                            <label class="inline-flex min-h-11 items-center gap-2 rounded border border-ink-300 bg-white px-3 text-sm has-[:checked]:border-accent-600 has-[:checked]:bg-accent-100">
+                                <input type="radio" wire:model="desirable" value="{{ $value->value }}" name="desirable-{{ $proposal->id }}" class="h-5 w-5"> {{ $value->label() }}
                             </label>
                         @endforeach
                     </div>
@@ -41,8 +41,8 @@
                     <legend class="text-sm font-medium">Nécessaire pour le pays, même si elle vous coûte ?</legend>
                     <div class="mt-2 flex flex-wrap gap-3">
                         @foreach ($values as $value)
-                            <label class="inline-flex items-center gap-1.5 text-sm">
-                                <input type="radio" wire:model="necessary" value="{{ $value->value }}" name="necessary-{{ $proposal->id }}" class="h-4 w-4"> {{ $value->label() }}
+                            <label class="inline-flex min-h-11 items-center gap-2 rounded border border-ink-300 bg-white px-3 text-sm has-[:checked]:border-accent-600 has-[:checked]:bg-accent-100">
+                                <input type="radio" wire:model="necessary" value="{{ $value->value }}" name="necessary-{{ $proposal->id }}" class="h-5 w-5"> {{ $value->label() }}
                             </label>
                         @endforeach
                     </div>

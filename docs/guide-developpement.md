@@ -89,6 +89,7 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 
 - **Données personnelles** : export uniquement par `AccountExporter` (aucune donnée d'un tiers), suppression uniquement par `AccountEraser` (déconnecter **avant** d'appeler `erase()` dans un contrôleur). Toute nouvelle table liée à `users` choisit explicitement `cascadeOnDelete` (donnée personnelle) ou `nullOnDelete` (contenu public) et est ajoutée à l'export.
 - **Inactivité** : `TrackLastSeen` écrit `last_seen_at` au jour près ; ne jamais ajouter d'heure, d'IP ni d'historique.
+- **Accessibilité** : `make a11y` doit rester à 5/5 (pile Docker démarrée, données de démonstration chargées) ; toute nouvelle page publique majeure s'ajoute à `app/.pa11yci.json` et à `docs/accessibilite.md`. Boutons et choix de vote : hauteur minimale 44 px (`min-h-11`). `PageWeightTest` borne les pages à 300 Ko.
 - **Pages légales** : `config('votalis.legal')`, valeurs dans l'environnement (`LEGAL_*`), jamais dans le dépôt. Documents internes dans `docs/rgpd/`.
 
 ## Conventions

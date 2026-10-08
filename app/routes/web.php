@@ -26,6 +26,7 @@ Route::get('/transparence', [TransparencyController::class, 'index'])->name('tra
 Route::view('/confidentialite', 'pages.legal.privacy')->name('privacy');
 Route::view('/mentions-legales', 'pages.legal.notice')->name('legal-notice');
 Route::view('/cookies', 'pages.legal.cookies')->name('cookies');
+Route::view('/accessibilite', 'pages.legal.accessibility')->name('accessibility');
 
 // Journal public de modération : lecture libre.
 Route::get('/journal-de-moderation', [ModerationLogController::class, 'index'])->name('moderation-log.index');

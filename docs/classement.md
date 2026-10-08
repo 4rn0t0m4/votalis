@@ -19,7 +19,7 @@ Chaque participant répond à deux questions par proposition : « Souhaitable po
 | Les plus clivantes | 1 − \|oui − non\| / (oui + non) sur la question « souhaitable », décroissant ; à égalité, le plus de votes | au moins 10 votes |
 | Nécessaires mais pas souhaitées | (oui « nécessaire » − oui « souhaitable ») / total, décroissant, seulement si positif | au moins 10 votes |
 | Soutien en hausse après les arguments | Parmi les votes révisés après lecture des arguments : part passée de « non » ou « je ne sais pas » à « oui » sur la question « souhaitable », décroissante | au moins 1 révision |
-| Les plus choisies dans les arbitrages | Fréquence de sélection dans les arbitrages (phase C du lot 3) | à venir |
+| Les plus choisies dans les arbitrages | Part des réponses aux arbitrages ouverts ou clos qui retiennent la mesure (choix / réponses à l'exercice), décroissante ; à égalité, le plus de choix | au moins 1 choix |
 | Les plus consensuelles | V2, voir ci-dessous | à venir |
 
 ## Vote rapide

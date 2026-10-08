@@ -18,10 +18,12 @@
             <a href="{{ route('home') }}" class="font-semibold text-ink-900">{{ config('app.name') }}</a>
             <ul class="flex items-center gap-4 text-sm">
                 <li><a href="{{ route('themes.index') }}" class="hover:underline">Thèmes</a></li>
+                <li><a href="{{ route('tradeoffs.index') }}" class="hover:underline">Arbitrages</a></li>
                 <li><a href="{{ route('search') }}" class="hover:underline">Rechercher</a></li>
                 <li><a href="{{ route('how-it-works') }}" class="hover:underline">Comment ça marche</a></li>
                 @can('manage-themes')
-                    <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Comité</a></li>
+                    <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Thèmes (comité)</a></li>
+                    <li><a href="{{ route('committee.tradeoffs.index') }}" class="hover:underline">Arbitrages (comité)</a></li>
                 @endcan
                 @auth
                     <li><a href="{{ route('quick-vote') }}" class="hover:underline">Vote rapide</a></li>

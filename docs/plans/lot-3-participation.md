@@ -1,6 +1,6 @@
 # Plan du lot 3 — Participation
 
-Statut : **en attente de validation** (rédigé le 8 octobre 2026).
+Statut : **réalisé le 8 octobre 2026, en attente de la pull request** (plan validé le 8 octobre 2026, « feu vert »).
 Référence : cahier des charges, sections 4.3, 4.5, 4.7, 4.9, 4.10, 9, 10, 12 et 13. Branche : `lot-3-participation`.
 
 ## 1. Objectif et critères d'acceptation
@@ -105,7 +105,36 @@ Reporté : consensus et familles de votants (V2, le service Python est posé pou
 2. Phase B : service Python, image Docker, `EmbeddingClient`, colonne vecteur et file de calcul, détection de doublons, regroupement des conditions, Meilisearch et recherche. Point d'étape.
 3. Phase C : arbitrages (modèle, administration, exercice, résultats). Recette C1 à C9, mise à jour de `docs/architecture.md` et de la CI, pull request.
 
-## 9. Questions à valider
+## 9. Recette du 8 octobre 2026
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| C1 | Plafond refusé côté serveur | `VoteTest` : 3e vote du jour refusé par le service et par l'action Livewire (plafond réglé à 2) ; propositions et arguments déjà couverts au lot 2 |
+| C2 | « Baisser les charges des PME » suggère « Alléger les cotisations des petites entreprises » | `EmbeddingIntegrationTest` contre le vrai service : similarité 0,93 entre les deux phrases, 0,85 avec « Créer mille lits d'hôpital » ; seuil calibré à 0,89. `DuplicateFinderTest` couvre la logique avec des vecteurs simulés |
+| C3 | Un vote par compte et par proposition, vote initial conservé | `VoteTest` |
+| C4 | Résultats détaillés seulement après le vote | `VoteTest` : visiteur et participant non votant ne voient pas les résultats |
+| C5 | Le premier vote verrouille le fond | `VoteTest` : `content_locked_at` posé, changement de fond refusé ensuite |
+| C6 | Contrainte atteinte obligatoire, seule la dernière combinaison compte | `TradeoffTest` |
+| C7 | Mesure sans chiffrage refusée | `TradeoffTest` : impact, incertitude ou source manquants refusés |
+| C8 | Aucun texte ne sort du réseau privé | `EmbeddingClientTest` : hôte externe refusé ; service Python hors ligne à l'exécution |
+| C9 | Aucun classement unique par soutien | `RankingsTest` : onglets et libellés vérifiés |
+
+Suite complète : 155 tests, 654 assertions, PHPStan niveau 8 ; service Python : ruff, mypy, 5 tests pytest. Pile Docker vérifiée avec le jeu de démonstration (200 fiches vectorisées, index Meilisearch, arbitrage de démonstration).
+
+Écarts par rapport au plan : seuil de doublon 0,89 au lieu de 0,84 après calibrage sur le modèle ; service `worker` ajouté à Compose pour les files ; les tests Python de CI utilisent un modèle factice (`requirements-test.txt`) pour éviter de télécharger le modèle à chaque exécution.
+
+## 10. Questions tranchées le 8 octobre 2026 (« feu vert »)
+
+| Question | Décision |
+| --- | --- |
+| Q1 Modèle | `multilingual-e5-small`, 384 dimensions |
+| Q2 Téléchargement | Hugging Face au build de l'image uniquement, exécution hors ligne |
+| Q3 Vote sur sa propre proposition | Interdit |
+| Q4 « Après lecture des arguments » | Révision depuis la fiche, ou depuis le vote rapide après dépliage des arguments |
+| Q5 Minimum de votes | 10, configurable (`RANKINGS_MIN_VOTES`) |
+| Q6 Découpage | Trois phases, une pull request |
+
+## 11. Questions posées à la validation
 
 - **Q1 — Taille du modèle d'embeddings.** `multilingual-e5-small` (384 dimensions, ~500 Mo, recommandé au MVP) ou `multilingual-e5-base` (768 dimensions, ~1,1 Go, légèrement plus précis) ? Le choix fixe la dimension de la colonne vecteur ; changer plus tard demande un recalcul complet, prévu par `embedding_version`.
 - **Q2 — Téléchargement du modèle.** Le modèle est téléchargé depuis Hugging Face (États-Unis) au moment de construire l'image Docker, jamais à l'exécution, et aucun texte n'y est envoyé. Acceptable, ou souhaitez-vous un miroir du modèle hébergé en Europe (dépôt Codeberg LFS ou stockage objet de l'hébergeur) dès le MVP ?

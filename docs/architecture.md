@@ -1,6 +1,6 @@
 # Architecture
 
-Document tenu à jour à chaque lot. État : lot 3 phases A et B (votes, classements, embeddings, doublons, recherche), 8 octobre 2026.
+Document tenu à jour à chaque lot. État : lot 3 complet (votes, classements, embeddings, doublons, recherche, arbitrages), 8 octobre 2026.
 
 ## Vue d'ensemble
 
@@ -92,6 +92,21 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - **`ConditionGrouper`** : regroupement glouton des conditions « oui, à condition que… » par similarité (seuil 0,86), libellé = condition la plus centrale, résultat dans `vote_condition_groups`, recalculé par la file (`RegroupVoteConditions`) après chaque vote conditionnel.
 - **Recherche** : Laravel Scout + Meilisearch, index `proposals` (titre, problème, mesure, thème ; rien sur l'auteur), filtre par thème, page `/recherche`. Pilote `collection` dans les tests. Indexation en file (`SCOUT_QUEUE=true`).
 - **File d'attente** : service `worker` (`queue:work`) dans Compose ; en production, un processus équivalent supervisé.
+
+## Lot 3, phase C : arbitrages
+
+| Table | Rôle |
+| --- | --- |
+| `tradeoffs` | Exercice du comité : objectif chiffré et sourcé, contrainte (`constraint_value`, `unit`, `direction` atteindre au moins / ne pas dépasser), statut brouillon / ouvert / clos, thème facultatif |
+| `tradeoff_items` | Mesures candidates : proposition publiée, `impact`, `uncertainty` et `source_url` obligatoires (une mesure sans chiffrage fiable n'entre pas) |
+| `tradeoff_answers` | Dernière combinaison d'un participant (clé composite), `item_ids`, `conditions` (item → « acceptée à condition que… »), `total` |
+| `tradeoff_answer_revisions` | Historique des combinaisons, visible par le participant seul |
+| `tradeoff_suggestions` | Mesures candidates proposées par les participants, ajoutées ou écartées par le comité |
+
+- `App\Services\TradeoffService` : toutes les règles côté serveur (exercice ouvert, mesures de l'exercice, contrainte atteinte, conditions, remplacement de la réponse avec historique, ouverture à partir de deux mesures, chiffrage obligatoire), résultats agrégés (fréquence par mesure, combinaisons les plus fréquentes, conditions les plus citées) en cache.
+- Livewire `TradeoffExercise` : jauge en direct, arguments de chaque mesure repliés, condition par mesure choisie, validation possible seulement si la contrainte est atteinte (vérifiée aussi par le service), historique, suggestion d'une mesure.
+- Administration `/comite/arbitrages` (capacité `manage-tradeoffs`, comité éditorial) ; pages publiques `/arbitrages`, `/arbitrages/{slug}`, `/arbitrages/{slug}/resultats`.
+- Onglet « les plus choisies dans les arbitrages » alimenté par `Rankings` (part des réponses retenant la mesure).
 
 ## Environnements
 

@@ -12,7 +12,7 @@
             <li><strong>Les plus clivantes</strong> : les « oui » et les « non » s'équilibrent, à partir de {{ config('votalis.rankings.min_votes') }} votes.</li>
             <li><strong>Nécessaires mais pas souhaitées</strong> : plus de participants les jugent nécessaires que souhaitables.</li>
             <li><strong>Soutien en hausse après les arguments</strong> : la part des votes passés à « oui » après lecture des arguments.</li>
-            <li><strong>Les plus choisies dans les arbitrages</strong> : bientôt, avec le module d'arbitrages.</li>
+            <li><strong>Les plus choisies dans les arbitrages</strong> : la part des participants qui retiennent la mesure quand ils composent une combinaison sous contrainte.</li>
             <li><strong>Les plus consensuelles</strong> : en V2, un classement par familles de votants, inspiré de Pol.is, dont l'algorithme sera publié ici avec un lien vers le code.</li>
         </ul>
         <p class="mt-3 text-ink-700">Les définitions exactes sont publiées dans le dépôt du code (<code>docs/classement.md</code>).</p>

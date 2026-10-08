@@ -27,6 +27,30 @@ class ContributionCaps
         return $this->adjust($user, (int) config('votalis.caps.votes_per_day', 300));
     }
 
+    public function reportsPerDay(User $user): int
+    {
+        return $this->adjust($user, (int) config('votalis.caps.reports_per_day', 10));
+    }
+
+    public function remainingReports(User $user): int
+    {
+        $used = $user->reports()->where('created_at', '>=', now()->subDay())->count();
+
+        return max(0, $this->reportsPerDay($user) - $used);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function assertCanReport(User $user): void
+    {
+        if ($this->remainingReports($user) === 0) {
+            throw ValidationException::withMessages([
+                'cap' => [__('Vous avez atteint le plafond de :max signalements par jour.', ['max' => $this->reportsPerDay($user)])],
+            ]);
+        }
+    }
+
     /** Seuls les nouveaux votes comptent ; réviser un vote existant est toujours possible. */
     public function remainingVotes(User $user): int
     {

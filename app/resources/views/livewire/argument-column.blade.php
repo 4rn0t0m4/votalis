@@ -1,12 +1,15 @@
 <section class="rounded-lg border border-ink-200 bg-white p-4" aria-labelledby="arguments-{{ $sideKey }}">
-    <h2 id="arguments-{{ $sideKey }}" class="text-lg font-semibold">{{ $sideEnum->label() }} <span class="text-sm font-normal text-ink-500">({{ $arguments->count() }})</span></h2>
+    <h2 id="arguments-{{ $sideKey }}" class="text-lg font-semibold">{{ $sideEnum->label() }} <span class="text-sm font-normal text-ink-500">({{ $publishedCount }})</span></h2>
 
     @if ($arguments->isEmpty())
         <p class="mt-3 text-sm text-ink-500">Aucun argument {{ $sideKey === 'for' ? 'pour' : 'contre' }} pour l'instant.</p>
     @else
         <ul class="mt-3 divide-y divide-ink-200">
             @foreach ($arguments as $argument)
-                <li class="py-3" wire:key="argument-{{ $argument->id }}">
+                <li class="py-3" id="argument-{{ $argument->id }}" wire:key="argument-{{ $argument->id }}">
+                    @if ($argument->isHidden())
+                        <p class="text-sm text-ink-500">Argument masqué par la modération @if ($argument->hidden_motive && ! $argument->hidesEverything()) ({{ $argument->hidden_motive->label() }})@endif · <a href="{{ route('moderation-log.index', ['type' => 'argument']) }}" class="underline">journal</a></p>
+                    @else
                     <p class="text-sm">{{ $argument->body }}</p>
                     <p class="mt-1 text-xs text-ink-500">
                         {{ $argument->authorName() }} · {{ $argument->created_at?->translatedFormat('j F Y') }}
@@ -23,7 +26,11 @@
                         @else
                             <span class="text-xs text-ink-500">Utile · {{ $argument->marked_by_count }}</span>
                         @endif
+                        @if ($canReport && $argument->author_id !== auth()->id())
+                            <a href="{{ route('reports.create', ['type' => 'argument', 'id' => $argument->id]) }}" class="ml-2 text-xs text-ink-500 underline">Signaler</a>
+                        @endif
                     </div>
+                    @endif
                 </li>
             @endforeach
         </ul>

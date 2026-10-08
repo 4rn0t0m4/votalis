@@ -2,7 +2,7 @@
     <h1 class="text-2xl font-semibold">{{ $theme->exists ? 'Modifier le thème' : 'Nouveau thème' }}</h1>
     <form method="POST" action="{{ $theme->exists ? route('committee.themes.update', $theme) : route('committee.themes.store') }}" class="mt-6 max-w-lg">
         @csrf
-        @if ($theme->exists) @method('PUT') @endif
+        @if ($theme->exists) @method('PUT')@endif
 
         <x-form.field name="name" label="Nom" required :value="$theme->name" maxlength="80" />
         <x-form.field name="description" label="Description" :value="$theme->description" maxlength="500" help="Une phrase, affichée en tête du thème." />

@@ -37,6 +37,7 @@ return [
         'proposals_per_month_per_theme' => (int) env('CAP_PROPOSALS_PER_MONTH_PER_THEME', 3),
         'arguments_per_day' => (int) env('CAP_ARGUMENTS_PER_DAY', 20),
         'votes_per_day' => (int) env('CAP_VOTES_PER_DAY', 300),
+        'reports_per_day' => (int) env('CAP_REPORTS_PER_DAY', 10),
         'new_account_days' => (int) env('CAP_NEW_ACCOUNT_DAYS', 7),
     ],
 
@@ -97,6 +98,43 @@ return [
     */
     'conditions' => [
         'threshold' => (float) env('CONDITIONS_THRESHOLD', 0.86),
+    ],
+
+    /*
+    | Modération (CDC section 6) : délai de contestation d'une décision, délai laissé à
+    | l'auteur pour reformuler, nombre d'entrées par page du journal public.
+    */
+    'moderation' => [
+        'appeal_days' => (int) env('APPEAL_DAYS', 14),
+        'rewrite_days' => (int) env('REWRITE_DAYS', 14),
+        'log_per_page' => 50,
+        'queue_per_page' => 50,
+    ],
+
+    /*
+    | Signaux d'intégrité (CDC section 7). Les seuils vivent dans la configuration privée
+    | (environnement) et JAMAIS dans le dépôt : un seuil absent désactive le signal.
+    | Calcul nocturne par `integrity:scan`, présentation aux modérateurs, aucune action automatique.
+    */
+    'integrity' => [
+        // Inscriptions sur 24 h au-delà desquelles un signal est levé.
+        'registration_spike' => env('INTEGRITY_REGISTRATION_SPIKE') !== null ? (int) env('INTEGRITY_REGISTRATION_SPIKE') : null,
+        // Votes sur une même proposition en 24 h.
+        'vote_spike' => env('INTEGRITY_VOTE_SPIKE') !== null ? (int) env('INTEGRITY_VOTE_SPIKE') : null,
+        // Comptes de moins de `identical_voting_account_days` jours partageant au moins
+        // `identical_voting_min_shared` votes strictement identiques, à partir de `identical_voting_min_accounts` comptes.
+        'identical_voting_min_shared' => env('INTEGRITY_IDENTICAL_VOTING_MIN_SHARED') !== null ? (int) env('INTEGRITY_IDENTICAL_VOTING_MIN_SHARED') : null,
+        'identical_voting_min_accounts' => (int) env('INTEGRITY_IDENTICAL_VOTING_MIN_ACCOUNTS', 2),
+        'identical_voting_account_days' => (int) env('INTEGRITY_IDENTICAL_VOTING_ACCOUNT_DAYS', 30),
+        // Similarité cosinus minimale entre deux propositions de comptes différents déposées en 24 h.
+        'duplicate_content_similarity' => env('INTEGRITY_DUPLICATE_CONTENT_SIMILARITY') !== null ? (float) env('INTEGRITY_DUPLICATE_CONTENT_SIMILARITY') : null,
+        // Part des votes des 24 h émis entre `night_start` et `night_end` (heures) au-delà de laquelle un signal est levé,
+        // à partir de `night_min_votes` votes.
+        'night_share' => env('INTEGRITY_NIGHT_SHARE') !== null ? (float) env('INTEGRITY_NIGHT_SHARE') : null,
+        'night_min_votes' => (int) env('INTEGRITY_NIGHT_MIN_VOTES', 50),
+        'night_start' => (int) env('INTEGRITY_NIGHT_START', 2),
+        'night_end' => (int) env('INTEGRITY_NIGHT_END', 6),
+        'window_hours' => 24,
     ],
 
     /*

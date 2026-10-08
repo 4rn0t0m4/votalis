@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\ProposalOrigin;
 use App\Enums\ProposalStatus;
+use App\Enums\ReportMotive;
+use App\Models\Concerns\Moderatable;
 use Database\Factories\ProposalFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,6 +33,8 @@ use Laravel\Scout\Searchable;
  * @property string|null $seed_source
  * @property ProposalStatus $status
  * @property Carbon|null $content_locked_at
+ * @property ReportMotive|null $hidden_motive
+ * @property Carbon|null $rewrite_allowed_until
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Theme $theme
@@ -44,11 +48,11 @@ use Laravel\Scout\Searchable;
  * @property string|null $embedding_version
  * @property Carbon|null $embedded_at
  */
-#[Fillable(['theme_id', 'author_id', 'title', 'problem', 'measure', 'cost_estimate', 'cost_unknown', 'origin', 'seed_source', 'status', 'content_locked_at'])]
+#[Fillable(['theme_id', 'author_id', 'title', 'problem', 'measure', 'cost_estimate', 'cost_unknown', 'origin', 'seed_source', 'status', 'content_locked_at', 'hidden_motive', 'rewrite_allowed_until'])]
 class Proposal extends Model
 {
     /** @use HasFactory<ProposalFactory> */
-    use HasFactory, Searchable;
+    use HasFactory, Moderatable, Searchable;
 
     /**
      * @return array<string, string>
@@ -60,6 +64,8 @@ class Proposal extends Model
             'origin' => ProposalOrigin::class,
             'status' => ProposalStatus::class,
             'content_locked_at' => 'datetime',
+            'hidden_motive' => ReportMotive::class,
+            'rewrite_allowed_until' => 'datetime',
         ];
     }
 
@@ -134,6 +140,12 @@ class Proposal extends Model
     public function isLocked(): bool
     {
         return $this->content_locked_at !== null;
+    }
+
+    /** La modération a demandé une reformulation : l'auteur peut modifier le fond une fois. */
+    public function awaitsRewrite(): bool
+    {
+        return $this->status === ProposalStatus::RewriteRequested;
     }
 
     public function slug(): string

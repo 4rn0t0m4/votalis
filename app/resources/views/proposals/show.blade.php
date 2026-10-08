@@ -7,6 +7,17 @@
         › <a href="{{ route('themes.show', $proposal->theme) }}" class="hover:underline">{{ $proposal->theme->name }}</a>
     </nav>
 
+    @if ($moderationEntry ?? null)
+        <x-alert type="info" class="mt-4">
+            @if ($proposal->awaitsRewrite())
+                Reformulation demandée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif : cette fiche est invisible du public jusqu'à sa reformulation @if ($proposal->rewrite_allowed_until), possible jusqu'au {{ $proposal->rewrite_allowed_until->translatedFormat('j F Y') }}@endif.
+            @else
+                Cette fiche est masquée par la modération @if ($proposal->hidden_motive) ({{ $proposal->hidden_motive->label() }})@endif et n'est visible que de son auteur et de la modération.
+            @endif
+            <a href="{{ $moderationEntry->url() }}" class="underline">Voir la décision au journal public</a>.
+        </x-alert>
+    @endif
+
     <article class="mt-3">
         <header>
             <h1 class="text-2xl font-semibold">{{ $proposal->title }}</h1>
@@ -18,9 +29,14 @@
                     · modifiée le {{ $proposal->revisions->first()?->created_at->translatedFormat('j F Y') }}
                 @endif
             </p>
-            @can('update', $proposal)
-                <p class="mt-2"><a href="{{ route('proposals.edit', $proposal) }}" class="text-sm underline">{{ $proposal->isLocked() ? 'Corriger la forme' : 'Modifier' }}</a></p>
-            @endcan
+            <p class="mt-2 flex gap-4 text-sm">
+                @can('update', $proposal)
+                    <a href="{{ route('proposals.edit', $proposal) }}" class="underline">{{ $proposal->awaitsRewrite() ? 'Reformuler' : ($proposal->isLocked() ? 'Corriger la forme' : 'Modifier') }}</a>
+                @endcan
+                @can('report', $proposal)
+                    <a href="{{ route('reports.create', ['type' => 'proposition', 'id' => $proposal->id]) }}" class="text-ink-500 underline">Signaler</a>
+                @endcan
+            </p>
         </header>
 
         <div class="mt-6 grid gap-6 lg:grid-cols-3">

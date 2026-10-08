@@ -108,6 +108,46 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - Administration `/comite/arbitrages` (capacité `manage-tradeoffs`, comité éditorial) ; pages publiques `/arbitrages`, `/arbitrages/{slug}`, `/arbitrages/{slug}/resultats`.
 - Onglet « les plus choisies dans les arbitrages » alimenté par `Rankings` (part des réponses retenant la mesure).
 
+## Lot 4, phase A : signalement, file de modération, journal public
+
+| Table | Rôle |
+| --- | --- |
+| `reports` | Signalement d'une proposition ou d'un argument (relation morphique `target`), motif de la charte, précision facultative (300 caractères), statut ouvert / traité, lien vers l'entrée du journal qui l'a clos. Un seul par compte et par contenu (index unique) |
+| `moderation_log` | Journal public, **en ajout seul** : type et identifiant de la cible, action, motif, identifiant interne de l'acteur (jamais affiché) et son rôle, `details` JSON limité à des identifiants. Aucune clé étrangère pour que la suppression d'un compte ou d'un contenu (lot 5) ne touche jamais une entrée. Déclencheurs PostgreSQL `BEFORE UPDATE OR DELETE` et `BEFORE TRUNCATE` levant une exception ; le modèle `ModerationLogEntry` refuse aussi `save()` sur une entrée existante et `delete()` |
+| `proposals`, `arguments` (ajouts) | `hidden_motive` ; statut `rewrite_requested` pour les propositions, avec `rewrite_allowed_until` |
+
+- Motifs (`ReportMotive`) : liste fermée de la charte avec gravité (illégal 3 ; attaque personnelle, désinformation, campagne coordonnée 2 ; hors sujet, doublon, spam 1). Seul « contenu illégal » masque immédiatement (`auto_hide`, acteur `system`, journalisé) ; les autres laissent le contenu visible jusqu'à la décision.
+- `App\Services\ReportService` : seul point de création d'un signalement (capacité `report` : participant vérifié, pas l'auteur, contenu publié ; unicité ; plafond `caps.reports_per_day`).
+- `App\Services\ModerationService` : conserver (rétablit un contenu masqué en attente), masquer avec motif (un doublon référence la fiche conservée dans `details`), demander une reformulation (propositions seulement). Chaque action écrit l'entrée du journal et clôt les signalements ouverts dans la même transaction. `rewriteReceived()` est appelé par `ProposalService::update` quand l'auteur a reformulé : une seule modification de fond malgré le verrou, puis republication immédiate.
+- `App\Services\ModerationQueue` : un dossier par contenu, trié par gravité du motif le plus grave puis par ancienneté ; contexte de l'auteur pseudonymisé (ancienneté du compte, décisions antérieures) ; historique agrégé du signaleur (émis, traités, retenus) sans jamais révéler son identité.
+- Affichage : une proposition masquée est remplacée par un bandeau public avec le motif et le lien vers l'entrée du journal (ni titre, ni redirection canonique pour un contenu illégal) ; auteur et modérateurs voient le contenu complet avec le bandeau. Un argument masqué devient une ligne « Argument masqué par la modération ». Les contenus masqués sortent déjà des classements, du vote rapide, de la recherche et des doublons (`published()`).
+- Routes : `/signaler/{proposition|argument}/{id}` (formulaire sans JavaScript), `/moderation` et `/moderation/dossiers/{type}/{id}` (capacité `moderate`, second facteur exigé), `/journal-de-moderation` (public, filtrable), `/charte-de-moderation`, `/comment-fonctionne-le-classement`.
+- Journal public : date, type de contenu, action, motif, rôle de l'acteur ; jamais de pseudonyme de modérateur ; le titre d'une fiche masquée pour un motif ordinaire est montré, rien pour un contenu illégal.
+
+## Lot 4, phase B : contestation, information des auteurs, suspension
+
+| Table | Rôle |
+| --- | --- |
+| `appeals` | Une contestation par entrée du journal (`log_entry_id` unique) : auteur, texte (1 000 caractères), statut en attente / confirmée / annulée, arbitre (`decided_by`, identifiant interne), motivation visible de l'auteur (`decision_note`), entrée du journal portant l'issue |
+| `users` (ajouts) | `suspended_at`, `suspended_until` (null : sans terme). Le motif ne figure que dans le journal |
+
+- `App\Services\AppealService::file()` : capacité `appeal` (`AppealPolicy`) : auteur du contenu ou titulaire du compte suspendu, action contestable (masquage, reformulation, suspension), délai `moderation.appeal_days`, une seule fois. `decide()` : capacité `arbitrate-appeals` (comité) ; **refus si l'arbitre est l'auteur de la décision contestée** (critère D2, testé par le service et par la route) ; une annulation rétablit le contenu ou lève la suspension ; l'issue est journalisée (`appeal_confirmed` / `appeal_overturned`, `details.appealed_entry_id`) et l'auteur prévenu.
+- `App\Services\ModerationService::suspend()` : comité éditorial seulement, compte participant seulement, durée en jours ou sans terme, entrée `suspend` avec `target_type = user` (le journal affiche « Compte », jamais le pseudonyme). La Gate `participate` refuse un compte suspendu : votes, propositions, arguments, signalements et arbitrages sont bloqués d'un coup ; lecture et contestation restent possibles.
+- `App\Notifications\ModerationNotice` : e-mail minimal (file d'attente) à chaque masquage, demande de reformulation, suspension et décision d'appel ; ni contenu, ni motif, ni pseudonyme, seulement un lien vers `/mon-compte/moderation`.
+- Pages : `/mon-compte/moderation` (décisions me concernant, contestation, issue et motivation du comité), `/mon-compte/moderation/contester/{entrée}`, `/moderation/contestations` et `/moderation/contestations/{id}` (comité ; une contestation de sa propre décision est affichée sans formulaire), suspension depuis le dossier de modération.
+
+## Lot 4, phase C : signaux d'intégrité et transparence
+
+| Table | Rôle |
+| --- | --- |
+| `integrity_signals` | Signal calculé par `integrity:scan` : type, gravité (1 à 3), `targets` (identifiants internes seulement), `details` (comptages), statut nouveau / examiné / confirmé / écarté, examinateur, date de fenêtre. Index unique (type, jour, cibles) : un second passage ne duplique rien |
+| `transparency_reports` | Rapport d'une période : `data` JSON d'agrégats, public |
+
+- `App\Services\IntegrityScanner` : cinq détecteurs sur les 24 dernières heures, chacun **inactif tant que son seuil n'est pas configuré** (`config/votalis.php`, clés `integrity.*`, lues depuis l'environnement sans valeur par défaut dans le dépôt) : pic d'inscriptions, pic de votes sur une fiche, comptes récents votant de manière identique (paires regroupées en composantes), propositions presque identiques de comptes différents (similarité pgvector sur `embedding`), activité nocturne. Le service n'écrit que dans `integrity_signals` ; aucun contenu ni compte n'est touché.
+- Commandes et planification (`routes/console.php`) : `integrity:scan` chaque nuit à 4 h 30, `transparency:report` le premier jour de chaque trimestre (ou `--from` / `--to` pour une période). En production, le planificateur Laravel doit tourner (`schedule:run` chaque minute, ou `schedule:work`).
+- `App\Services\TransparencyReporter` : signalements par motif, décisions par action et motif, contestations déposées / confirmées / annulées, comptes suspendus, signaux levés et opérations coordonnées confirmées. Jamais d'identifiant ni de texte.
+- Pages : `/moderation/signaux` (Gate `view-integrity-signals` : modération, comité et administrateur technique ; seule la modération change le statut), `/transparence` (public). `docs/incidents.md` : procédure VIGINUM, ANSSI, Cybermalveillance.gouv.fr et CNIL.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |
@@ -132,3 +172,9 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Pas de brouillon de proposition | Publication immédiate puis correction, historique public |
 | 2026-10-08 | `multilingual-e5-small` (384 dim.) téléchargé au build, exécution hors ligne | Empreinte mémoire ≈ 500 Mo ; aucun texte ne sort du réseau privé ; `embedding_version` permet un recalcul si le modèle change |
 | 2026-10-08 | Seuil de doublon 0,89 | Calibré sur le modèle : évite de signaler deux mesures différentes d'un même domaine |
+| 2026-10-08 | Journal de modération sans clé étrangère, immuable par déclencheur | Une suppression de compte ou de contenu ne doit jamais modifier ni effacer une entrée |
+| 2026-10-08 | Masquage immédiat dès le premier signalement « contenu illégal » | Imposé par le cahier des charges ; garde-fous : plafond de signalements, historique du signaleur, rétablissement par « conserver » |
+| 2026-10-08 | Formulaires de signalement et de modération en Blade sans Livewire | Pas de JavaScript nécessaire, CSP simple, testable en HTTP |
+| 2026-10-08 | Reformulation : fiche invisible, une modification de fond, republication sans validation | Décision du 8 octobre ; le modérateur peut remasquer |
+| 2026-10-08 | Seuils d'intégrité sans valeur par défaut : un seuil absent désactive le détecteur | Le cahier des charges interdit tout seuil anti-fraude dans le dépôt |
+| 2026-10-08 | Signaux jamais appliqués automatiquement, statut changé seulement par la modération | Toute mesure passe par une décision journalisée et contestable |

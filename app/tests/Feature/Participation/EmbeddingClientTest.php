@@ -11,7 +11,7 @@ class EmbeddingClientTest extends TestCase
 {
     public function test_appelle_le_service_interne_et_retourne_les_vecteurs(): void
     {
-        Http::fake(['localhost:8001/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [[1, 0, 0], [0, 1, 0]]])]);
+        Http::fake(['*/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [[1, 0, 0], [0, 1, 0]]])]);
 
         $vectors = app(EmbeddingClient::class)->embed(['a', 'b']);
 
@@ -30,7 +30,7 @@ class EmbeddingClientTest extends TestCase
 
     public function test_degrade_silencieusement_si_le_service_est_indisponible(): void
     {
-        Http::fake(['localhost:8001/*' => Http::response('erreur', 503)]);
+        Http::fake(['*/*' => Http::response('erreur', 503)]);
 
         $this->assertNull(app(EmbeddingClient::class)->embed(['a']));
         $this->assertNull(app(EmbeddingClient::class)->embedOne('a'));

@@ -27,6 +27,8 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property Role $role
  * @property Carbon|null $email_verified_at
  * @property Carbon $consented_at
+ * @property Carbon|null $suspended_at
+ * @property Carbon|null $suspended_until
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -58,6 +60,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'email' => 'encrypted',
             'email_verified_at' => 'datetime',
             'consented_at' => 'datetime',
+            'suspended_at' => 'datetime',
+            'suspended_until' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'role' => Role::class,
@@ -88,6 +92,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Vote::class, 'participant_id');
     }
 
+    /** @return HasMany<Report, $this> */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
     /**
      * Arguments marqués « utile ».
      *
@@ -96,6 +106,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function markedArguments(): BelongsToMany
     {
         return $this->belongsToMany(Argument::class, 'argument_marks', 'participant_id', 'argument_id');
+    }
+
+    /** @return HasMany<Appeal, $this> */
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(Appeal::class, 'author_id');
+    }
+
+    /** Compte suspendu par le comité éditorial : lecture et contestation seulement. */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null && ($this->suspended_until === null || $this->suspended_until->isFuture());
     }
 
     public function hasRole(Role $role): bool

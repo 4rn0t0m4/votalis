@@ -37,26 +37,57 @@
         </ul>
     @endif
 
-    <section class="mt-8" aria-labelledby="recentes">
-        <h2 id="recentes" class="text-lg font-semibold">Propositions récentes</h2>
-        <p class="mt-1 text-sm text-ink-500">Les propositions mises en avant et le vote rapide arriveront avec les votes.</p>
+    <section class="mt-8" aria-labelledby="classements">
+        <h2 id="classements" class="sr-only">Propositions</h2>
+        <nav aria-label="Classements" class="flex flex-wrap gap-2 border-b border-ink-200 pb-3 text-sm">
+            @foreach ($tabs as $key => $label)
+                <a href="{{ route('themes.show', [$theme, 'classement' => $key === 'recentes' ? null : $key]) }}"
+                    @if ($tab === $key) aria-current="page" @endif
+                    class="rounded px-3 py-1 {{ $tab === $key ? 'bg-ink-900 text-white' : 'border border-ink-300 bg-white hover:bg-ink-100' }}">{{ $label }}</a>
+            @endforeach
+        </nav>
+        <p class="mt-3 text-sm text-ink-500">
+            Aucun classement par nombre de soutiens : chaque onglet éclaire les propositions sous un angle différent.
+            <a href="{{ route('how-it-works') }}" class="underline">Comment fonctionne le classement</a>
+        </p>
 
-        @if ($proposals->isEmpty())
-            <p class="mt-4 text-ink-500">Aucune proposition pour l'instant.</p>
+        @if ($pending)
+            <x-alert type="info" class="mt-4">{{ $pending }}</x-alert>
+        @elseif ($tab === 'recentes')
+            @if ($proposals->isEmpty())
+                <p class="mt-4 text-ink-500">Aucune proposition pour l'instant.</p>
+            @else
+                <ul class="mt-4 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white">
+                    @foreach ($proposals as $proposal)
+                        <li class="p-4">
+                            <h3 class="font-medium"><a href="{{ $proposal->url() }}" class="hover:underline">{{ $proposal->title }}</a></h3>
+                            <p class="mt-1 line-clamp-2 text-sm text-ink-700">{{ $proposal->problem }}</p>
+                            <p class="mt-1 text-xs text-ink-500">
+                                {{ $proposal->theme->fullName() }} · {{ $proposal->authorName() }} · {{ $proposal->created_at?->translatedFormat('j F Y') }}
+                                · {{ trans_choice(':count vote|:count votes', $proposal->votes_count) }}
+                                · {{ trans_choice(':count argument|:count arguments', $proposal->arguments_count) }}
+                            </p>
+                        </li>
+                    @endforeach
+                </ul>
+                <div class="mt-4">{{ $proposals->links() }}</div>
+            @endif
         @else
-            <ul class="mt-4 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white">
-                @foreach ($proposals as $proposal)
-                    <li class="p-4">
-                        <h3 class="font-medium"><a href="{{ $proposal->url() }}" class="hover:underline">{{ $proposal->title }}</a></h3>
-                        <p class="mt-1 line-clamp-2 text-sm text-ink-700">{{ $proposal->problem }}</p>
-                        <p class="mt-1 text-xs text-ink-500">
-                            {{ $proposal->theme->fullName() }} · {{ $proposal->authorName() }} · {{ $proposal->created_at?->translatedFormat('j F Y') }}
-                            · {{ trans_choice(':count argument|:count arguments', $proposal->arguments_count) }}
-                        </p>
-                    </li>
-                @endforeach
-            </ul>
-            <div class="mt-4">{{ $proposals->links() }}</div>
+            @if ($ranked->isEmpty())
+                <p class="mt-4 text-ink-500">Pas encore assez de participation pour ce classement.@if (in_array($tab, ['clivantes', 'necessaires'], true)) Il faut au moins {{ config('votalis.rankings.min_votes') }} votes par proposition.@endif</p>
+            @else
+                <ol class="mt-4 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white">
+                    @foreach ($ranked as $proposal)
+                        <li class="flex gap-3 p-4">
+                            <span class="text-sm text-ink-500">{{ $loop->iteration }}.</span>
+                            <div>
+                                <h3 class="font-medium"><a href="{{ $proposal->url() }}" class="hover:underline">{{ $proposal->title }}</a></h3>
+                                <p class="mt-1 text-xs text-ink-500">{{ $proposal->theme->fullName() }} · {{ $proposal->getAttribute('metric') }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
         @endif
     </section>
 </x-layouts.app>

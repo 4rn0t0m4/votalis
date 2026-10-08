@@ -40,7 +40,7 @@ enum Role: string
         return match ($this) {
             self::Participant => ['participate'],
             self::Moderator => ['participate', 'moderate'],
-            self::Editorial => ['participate', 'moderate', 'manage-themes', 'publish-synthesis', 'arbitrate-appeals'],
+            self::Editorial => ['participate', 'moderate', 'manage-themes', 'manage-tradeoffs', 'publish-synthesis', 'arbitrate-appeals'],
             self::Admin => ['manage-platform'],
         };
     }

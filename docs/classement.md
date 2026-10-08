@@ -1,16 +1,30 @@
 # Comment fonctionne le classement
 
-Ce document décrit l'algorithme de classement, public et reproductible. Les seuils numériques vivent dans une configuration privée.
+Ce document décrit les classements, publics et reproductibles. Les seuils numériques ont une valeur par défaut documentée ici et peuvent être ajustés par la configuration privée.
 
-## MVP : pas de classement par consensus
+## Principe : aucun classement unique par soutien
 
-Tant que la plateforme compte moins de participants et de propositions que les seuils requis, aucun score de consensus n'est calculé :
+Aucune liste ne trie les propositions par nombre de « oui ». Chaque thème propose plusieurs onglets, calculés par `App\Services\Rankings` et mis en cache cinq minutes. Chaque proposition affiche la métrique qui justifie sa place.
 
-- les listes de propositions sont triées par date ;
-- le vote rapide présente les propositions dans un ordre partiellement aléatoire, pour donner leur chance aux propositions récentes ;
-- les onglets « les plus débattues », « les plus clivantes », « nécessaires mais pas souhaitées », « soutien en hausse après lecture des arguments » et « les plus choisies dans les arbitrages » reposent sur des comptages simples décrits au lot 3.
+## Le double vote
 
-Aucun classement unique par nombre de soutiens n'existe, à aucun moment.
+Chaque participant répond à deux questions par proposition : « Souhaitable pour vous ? » et « Nécessaire pour le pays, même si elle vous coûte ? », avec trois réponses (oui = 1, je ne sais pas = 0, non = −1). Un « oui » peut être assorti d'une condition de 200 caractères. Le vote est révisable ; le vote initial est conservé. Une révision faite depuis une vue où les arguments sont visibles (la fiche, ou le vote rapide après dépliage des arguments) est marquée « après lecture des arguments ». Le premier vote reçu verrouille le fond de la fiche.
+
+## Onglets du MVP
+
+| Onglet | Définition | Seuil |
+| --- | --- | --- |
+| Récentes | Ordre de publication | aucun |
+| Les plus débattues | Somme des votes et des arguments publiés, décroissante | aucun |
+| Les plus clivantes | 1 − \|oui − non\| / (oui + non) sur la question « souhaitable », décroissant ; à égalité, le plus de votes | au moins 10 votes |
+| Nécessaires mais pas souhaitées | (oui « nécessaire » − oui « souhaitable ») / total, décroissant, seulement si positif | au moins 10 votes |
+| Soutien en hausse après les arguments | Parmi les votes révisés après lecture des arguments : part passée de « non » ou « je ne sais pas » à « oui » sur la question « souhaitable », décroissante | au moins 1 révision |
+| Les plus choisies dans les arbitrages | Part des réponses aux arbitrages ouverts ou clos qui retiennent la mesure (choix / réponses à l'exercice), décroissante ; à égalité, le plus de choix | au moins 1 choix |
+| Les plus consensuelles | V2, voir ci-dessous | à venir |
+
+## Vote rapide
+
+Le vote rapide propose une fiche à la fois, non encore votée par le participant et jamais l'une des siennes. Le tirage est aléatoire et pondéré : poids × 3 pour une fiche publiée depuis moins de 14 jours, × 2 pour une fiche de moins de 10 votes. Les fiches passées pendant la session ne sont pas reproposées tant qu'il en reste d'autres.
 
 ## V2 : consensus par familles de votants
 

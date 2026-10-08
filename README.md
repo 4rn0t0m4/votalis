@@ -17,7 +17,9 @@ make up
 cd app && php artisan migrate --seed && npm install && npm run build
 ```
 
-Le site répond sur http://localhost:8080, les e-mails de développement sur http://localhost:8025 (Mailpit).
+Le site répond sur http://localhost:8080, les e-mails de développement sur http://localhost:8025 (Mailpit), Meilisearch sur http://localhost:7700, le service d'embeddings sur http://localhost:8001/health. Première construction de l'image d'embeddings : plusieurs minutes (téléchargement du modèle, environ 500 Mo).
+
+Après un import ou un seed : `php artisan scout:sync-index-settings && php artisan scout:import "App\\Models\\Proposal" && php artisan proposals:embed`.
 
 Comptes de développement créés par le seeder : `participante`, `moderateur`, `comite`, `admin` (mot de passe `mot-de-passe-de-test-123`, TOTP de test pour les rôles privilégiés : secret `JBSWY3DPEHPK3PXP`).
 

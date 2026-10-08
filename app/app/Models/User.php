@@ -31,6 +31,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property-read Collection<int, Vote> $votes
+ * @property-read Collection<int, TradeoffAnswer> $tradeoffAnswers
  */
 #[Fillable(['pseudonym', 'email', 'password', 'consented_at'])]
 #[Hidden(['password', 'remember_token', 'email', 'email_hash', 'two_factor_secret', 'two_factor_recovery_codes'])]
@@ -73,6 +74,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function arguments(): HasMany
     {
         return $this->hasMany(Argument::class, 'author_id');
+    }
+
+    /** @return HasMany<TradeoffAnswer, $this> */
+    public function tradeoffAnswers(): HasMany
+    {
+        return $this->hasMany(TradeoffAnswer::class, 'participant_id');
     }
 
     /** @return HasMany<Vote, $this> */

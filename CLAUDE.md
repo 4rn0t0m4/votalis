@@ -69,6 +69,7 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Embeddings** : uniquement via `App\Services\EmbeddingClient` (hôtes autorisés, repli `null`). Jamais d'appel direct au service, jamais d'API externe. Vecteurs écrits avec `EmbeddingClient::literal()`, requêtes avec `embedding <=> ?::vector`.
 - **Service Python** : `consensus/` (FastAPI). Qualité : `ruff check . && ruff format --check . && mypy && pytest` dans un conteneur `python:3.12-slim` avec `requirements-test.txt` (sans torch). Le modèle n'est téléchargé qu'au build de l'image.
 - **Recherche** : Scout + Meilisearch ; `toSearchableArray()` ne doit jamais contenir de donnée d'auteur. Tests avec `SCOUT_DRIVER=collection`.
+- **Arbitrages** : toujours par `App\Services\TradeoffService` (réponse, ajout de mesure, statut, suggestion). Une mesure sans `impact`, `uncertainty` et `source_url` est refusée.
 - **Files** : les jobs sont `ShouldQueue` ; en développement, le service `worker` les traite. Dans les tests, `QUEUE_CONNECTION=sync`.
 
 ## Conventions

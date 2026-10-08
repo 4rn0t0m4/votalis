@@ -25,7 +25,7 @@ class RoleGateTest extends TestCase
         return [
             'participant' => [Role::Participant, ['participate']],
             'modérateur' => [Role::Moderator, ['participate', 'moderate']],
-            'comité éditorial' => [Role::Editorial, ['participate', 'moderate', 'manage-themes', 'publish-synthesis', 'arbitrate-appeals']],
+            'comité éditorial' => [Role::Editorial, ['participate', 'moderate', 'manage-themes', 'manage-tradeoffs', 'publish-synthesis', 'arbitrate-appeals']],
             'administrateur technique' => [Role::Admin, ['manage-platform']],
         ];
     }

@@ -8,6 +8,7 @@ use App\Models\Vote;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Classements multiples par thème (CDC 4.10). Aucun classement unique par soutien.
@@ -37,7 +38,6 @@ class Rankings
     public static function pending(string $tab): ?string
     {
         return match ($tab) {
-            'arbitrages' => 'Cet onglet s’alimentera dès que le module d’arbitrages sera ouvert.',
             'consensuelles' => 'Le classement par consensus (familles de votants) arrive en V2, une fois quelques centaines de votants actifs atteints.',
             default => null,
         };
@@ -99,6 +99,22 @@ class Rankings
                 ->orderByRaw('rv.gained::numeric / rv.revised desc, rv.gained desc')
                 ->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', trans_choice(':count vote passé à oui|:count votes passés à oui', (int) $p->getAttribute('gained')).' après lecture des arguments, sur '.trans_choice(':count révision|:count révisions', (int) $p->getAttribute('revised')))),
+
+            'arbitrages' => $base
+                ->joinSub(
+                    DB::table('tradeoff_items as ti')
+                        ->join('tradeoffs as t', 't.id', '=', 'ti.tradeoff_id')
+                        ->join('tradeoff_answers as ta', 'ta.tradeoff_id', '=', 'ti.tradeoff_id')
+                        ->whereIn('t.status', ['open', 'closed'])
+                        ->selectRaw('ti.proposal_id, count(*) filter (where ta.item_ids @> jsonb_build_array(ti.id)) as chosen, count(*) as answers')
+                        ->groupBy('ti.proposal_id'),
+                    'tr', 'tr.proposal_id', '=', 'proposals.id'
+                )
+                ->select('proposals.*', 'tr.chosen', 'tr.answers')
+                ->whereRaw('tr.chosen > 0')
+                ->orderByRaw('tr.chosen::numeric / tr.answers desc, tr.chosen desc')
+                ->limit($limit)->get()
+                ->each(fn (Proposal $p) => $p->setAttribute('metric', 'choisie dans '.VoteService::percent((int) $p->getAttribute('chosen'), (int) $p->getAttribute('answers')).' % des arbitrages ('.$p->getAttribute('chosen').' sur '.$p->getAttribute('answers').')')),
 
             default => $base->latest()->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', trans_choice(':count vote|:count votes', $p->votes_count))),

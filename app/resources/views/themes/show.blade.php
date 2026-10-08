@@ -74,7 +74,7 @@
             @endif
         @else
             @if ($ranked->isEmpty())
-                <p class="mt-4 text-ink-500">Pas encore assez de votes pour ce classement. Il faut au moins {{ config('votalis.rankings.min_votes') }} votes par proposition.</p>
+                <p class="mt-4 text-ink-500">Pas encore assez de participation pour ce classement.@if (in_array($tab, ['clivantes', 'necessaires'], true)) Il faut au moins {{ config('votalis.rankings.min_votes') }} votes par proposition.@endif</p>
             @else
                 <ol class="mt-4 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white">
                     @foreach ($ranked as $proposal)

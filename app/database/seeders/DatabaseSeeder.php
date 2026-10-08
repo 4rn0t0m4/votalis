@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
         if (Proposal::query()->doesntExist()) {
             $this->call(DemoProposalSeeder::class);
         }
+
+        $this->call(DemoTradeoffSeeder::class);
     }
 
     /** Compte de développement, créé une seule fois. */

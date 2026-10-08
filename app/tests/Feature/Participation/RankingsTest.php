@@ -107,7 +107,7 @@ class RankingsTest extends TestCase
             $this->get("/themes/{$this->theme->slug}?classement={$tab}")->assertOk()->assertSee(Rankings::labels()[$tab]);
         }
 
-        $this->get("/themes/{$this->theme->slug}?classement=arbitrages")->assertSee('module d’arbitrages');
+        $this->get("/themes/{$this->theme->slug}?classement=arbitrages")->assertSee('Pas encore assez');
         $this->get("/themes/{$this->theme->slug}?classement=consensuelles")->assertSee('V2');
         $this->get("/themes/{$this->theme->slug}?classement=inconnu")->assertOk();
 

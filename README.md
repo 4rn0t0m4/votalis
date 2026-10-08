@@ -25,7 +25,7 @@ Comptes de développement créés par le seeder : `participante`, `moderateur`, 
 
 ## Mode de production du code
 
-Ce code a été écrit avec un assistant d'IA (Claude, Anthropic), à partir d'un cahier des charges rédigé par l'auteur du projet, lot par lot, chaque lot ayant fait l'objet d'un plan validé, de tests écrits avec le code et d'une relecture par pull request. Chaque commit porte la mention `Co-Authored-By`. Le dépôt a été déplacé de Codeberg vers GitHub le 8 octobre 2026, les conditions d'utilisation de Codeberg excluant ce mode de production (voir `docs/architecture.md`, décisions).
+Ce code a été écrit avec un assistant d'IA (Claude, Anthropic), à partir d'un cahier des charges rédigé par l'auteur du projet, lot par lot, chaque lot ayant fait l'objet d'un plan validé, de tests écrits avec le code et d'une relecture par pull request. Le dépôt a été déplacé de Codeberg vers GitHub le 8 octobre 2026, les conditions d'utilisation de Codeberg excluant ce mode de production (voir `docs/architecture.md`, décisions).
 
 ## Qualité
 

@@ -1,6 +1,6 @@
 # Plan du lot 6 — Expérience
 
-Statut : **plan soumis à validation le 8 octobre 2026**. Aucun code écrit avant le feu vert.
+Statut : **réalisé le 8 octobre 2026, en attente de la pull request** (plan validé le 8 octobre 2026, « feu vert pour tes reco »).
 Référence : cahier des charges, section 1 (principes directeurs), 2 (hors périmètre : profils publics détaillés), 4.3 (votes), 4.7 (plafonds), 7.2 (anti-manipulation), 12 (exigences non fonctionnelles : accessibilité, mobile d'abord, sobriété, identité visuelle), 14. Branche : `lot-6-experience`.
 
 Demande d'origine : « rendre le design beaucoup plus fun, attrayant et gamifier tout ça ».
@@ -70,11 +70,11 @@ La gamification proposée est donc **un parcours personnel, privé et qualitatif
   | `lecture_complete` | Lecture complète | Un vote déposé après avoir déplié les arguments |
   | `deux_points_de_vue` | Deux points de vue | A marqué « utile » au moins un argument pour et un argument contre |
   | `esprit_ouvert` | Esprit ouvert | A révisé un vote après lecture des arguments (quel que soit le sens) |
-  | `nuance` | Nuance | A déposé un « oui, à condition que… » |
-  | `arbitre` | Arbitre | A validé une combinaison dans un arbitrage |
-  | `exploration` | Exploration | A voté dans cinq thèmes de premier niveau différents |
-  | `source` | Sourcé | A publié un argument avec une source |
-  | `proposant` | Proposant | A publié une proposition |
+  | `oui_a_condition` | Nuance | A déposé un « oui, à condition que… » |
+  | `premier_arbitrage` | Arbitre | A validé une combinaison dans un arbitrage |
+  | `themes_explores` | Exploration | A voté dans cinq thèmes de premier niveau différents |
+  | `argument_source` | Sourcé | A publié un argument avec une source |
+  | `premiere_proposition` | Proposant | A publié une proposition |
 
   Aucun jalon ne porte sur un nombre de votes ou d'arguments au-delà du premier. La liste peut être ajustée à la validation.
 - **Parcours de démarrage** : trois étapes affichées sur l'accueil et le compte d'un participant connecté tant qu'elles ne sont pas faites (lire une fiche avec ses arguments, voter, arbitrer) ; disparaît ensuite.
@@ -135,3 +135,30 @@ Les compteurs personnels sont calculés à la demande à partir de `votes`, `arg
 | Q6 | Liste des neuf jalons | **Oui**, telle quelle ; ajustable sans migration (liste fermée en code) |
 | Q7 | Pictogramme par thème choisi par le comité | **Oui**, liste fermée de pictogrammes neutres |
 | Q8 | Mode sombre | **Reporté** à un lot ultérieur |
+
+## 8. Point d'étape et recette (8 octobre 2026)
+
+Livré en trois phases sur la branche `lot-6-experience` :
+
+- **Phase A** : palette et jetons (`app.css`), composants (`x-button`, `x-card`, `x-pill`, `x-stat`, `x-icon`, `x-illustration`), nouvelle mise en page (menu large à partir de `xl`, menu `<details>` en dessous, outils des rôles regroupés), accueil avec « pouls » et arbitrage mis en avant, thèmes en tuiles avec pictogramme (`themes.icon`, liste fermée `ThemeIcon`, formulaire du comité), fiche en cartes, bloc de vote à grands boutons et écran de remerciement, résultats en barres SVG, vote rapide en pile de cartes avec compteur privé du jour et barre d'actions au pouce, arbitrages (jauge, cartes, résultats), recherche, formulaires, pagination ; restylage mécanique des autres pages (compte, modération, légal, authentification).
+- **Phase B** : `Journey`, neuf jalons (`Milestone`), table `milestones`, colonne `votes.after_arguments`, page `/mon-compte/parcours`, parcours de démarrage sur l'accueil, célébration unique (dans le composant Livewire ou au chargement suivant), export et suppression.
+- **Phase C** : `make a11y` étendu à six pages, documentation (`architecture.md`, `guide-developpement.md`, `accessibilite.md`), captures dans `docs/plans/captures/lot-6/`.
+
+Écarts avec le plan : les blocs de la fiche se distinguent par une pastille et un fond teinté (pas de bordure gauche) ; le pas 1 du parcours de démarrage est « donner un premier avis » plutôt que « lire une fiche », car aucune lecture n'est tracée (minimisation) ; les clés des jalons ont été rendues distinctives (`oui_a_condition`, `premier_arbitrage`, `themes_explores`, `argument_source`, `premiere_proposition`) pour que le test de confidentialité ne confonde pas un mot courant avec une clé.
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| F1 | Identité visuelle sur toutes les pages | Fait ; captures bureau et mobile dans `captures/lot-6/` ; aucun débordement horizontal à 390 px (vérifié par script sur accueil, thèmes, fiche, vote rapide, arbitrage, parcours) |
+| F2 | Palette sans couleur partisane, contrastes AA | Tableau des couples dans `docs/accessibilite.md` ; axe sans erreur de contraste sur 6 pages |
+| F3 | Retour immédiat au vote, utilisable d'une main | `VoteConfirmationTest` ; cibles 44 px, barre d'actions fixée en bas sur mobile |
+| F4 | Parcours privé : tableau de bord, jalons, démarrage | `JourneyTest` (une règle par jalon, 40 votes sans lecture ne débloquent que « Première voix », idempotence), `JourneyPageTest` |
+| F5 | Rien du parcours visible d'autrui | `JourneyPrivacyTest` : fiches, recherche, journal, file et dossier de modération, composants Livewire, modèle sérialisé |
+| F6 | Export et suppression | `JourneyTest` : bloc `parcours` exporté, lignes supprimées en cascade |
+| F7 | Mouvement réduit, aucun son | `StyleTest` : `prefers-reduced-motion` dans la feuille compilée ; aucune animation infinie |
+| F8 | Sobriété | `PageWeightTest` vert ; CSS compilée 65 Ko (11 Ko gzip) ; aucune dépendance ajoutée ; `StyleTest` : aucune ressource externe, aucun `style=` dans les vues |
+| F9 | Accessibilité | `make a11y` : 6/6 pages sans erreur |
+| F10 | Règles des lots 1 à 5 inchangées | Suite existante verte sans modification de test (seul changement : URL canonique dans un nouveau test) |
+
+Suite complète : 235 tests, 1 361 assertions, PHPStan niveau 8, Pint.
+
+Point d'attention découvert : un serveur Vite d'un autre projet écoutait sur le port 5173 de l'hôte et masquait celui du conteneur ; le fichier `public/hot` a été retiré pour que le site de développement serve les ressources compilées. Le conteneur `node` ne sait pas exécuter `vite build` (binaire natif absent pour `linux-arm64-musl`) : la compilation se fait sur l'hôte (`npm run build`), comme pour le lot 5.

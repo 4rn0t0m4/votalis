@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 /**
  * @property int $id
@@ -39,12 +40,15 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, Argument> $arguments
  * @property-read Collection<int, Vote> $votes
  * @property int $votes_count
+ * @property string|null $embedding
+ * @property string|null $embedding_version
+ * @property Carbon|null $embedded_at
  */
 #[Fillable(['theme_id', 'author_id', 'title', 'problem', 'measure', 'cost_estimate', 'cost_unknown', 'origin', 'seed_source', 'status', 'content_locked_at'])]
 class Proposal extends Model
 {
     /** @use HasFactory<ProposalFactory> */
-    use HasFactory;
+    use HasFactory, Searchable;
 
     /**
      * @return array<string, string>
@@ -99,6 +103,32 @@ class Proposal extends Model
     public function scopePublished(Builder $query): void
     {
         $query->where('status', ProposalStatus::Published);
+    }
+
+    /**
+     * Index de recherche (Meilisearch) : texte de la fiche et thème, rien sur l'auteur.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        $theme = $this->theme;
+
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'problem' => $this->problem,
+            'measure' => $this->measure,
+            'theme' => $theme->fullName(),
+            'theme_id' => $theme->parent_id ?? $theme->id,
+            'subtheme_id' => $theme->id,
+            'created_at' => $this->created_at?->timestamp,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === ProposalStatus::Published;
     }
 
     public function isLocked(): bool

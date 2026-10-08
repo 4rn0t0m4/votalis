@@ -1,0 +1,7 @@
+# Dépendances de CI : tests avec un modèle factice, sans torch ni sentence-transformers.
+fastapi==0.115.*
+pydantic==2.*
+pytest==8.*
+httpx==0.27.*
+ruff==0.7.*
+mypy==1.13.*

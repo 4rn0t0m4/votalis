@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\SecurityController;
 use App\Http\Controllers\Committee\ThemeController as CommitteeThemeController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ThemeController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,7 @@ Route::view('/', 'home')->name('home');
 Route::view('/comment-ca-marche', 'pages.how-it-works')->name('how-it-works');
 
 // Thèmes et propositions : lecture publique.
+Route::get('/recherche', SearchController::class)->name('search');
 Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
 Route::get('/themes/{theme:slug}', [ThemeController::class, 'show'])->name('themes.show');
 

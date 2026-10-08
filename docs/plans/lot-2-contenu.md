@@ -1,6 +1,6 @@
 # Plan du lot 2 — Contenu
 
-Statut : **en attente de validation** (rédigé le 8 octobre 2026).
+Statut : **réalisé le 8 octobre 2026, en attente de la pull request** (plan validé le 8 octobre 2026).
 Référence : cahier des charges, sections 4.1, 4.2, 4.4, 10, 12 et 13. Branche : `lot-2-contenu`.
 
 ## 1. Objectif et critères d'acceptation
@@ -106,7 +106,32 @@ Les auteurs sont référencés par `author_id` et affichés par pseudonyme uniqu
 6. Import CSV, documentation du format, fixture de 200 lignes.
 7. Mise à jour de `docs/architecture.md`, recette B1 à B7, pull request.
 
-## 8. Questions à valider
+## 8. Recette du 8 octobre 2026
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| B1 | Fiche incomplète refusée avec un message clair | `ProposalCreationTest` : dix cas (chaque champ manquant ou trop long, source absente ou invalide, thème manquant), messages traduits |
+| B2 | 200 propositions d'amorçage importées sans erreur | `ImportTest` : fichier de 200 lignes importé, 200 révisions, répartition par thème vérifiée ; une ligne invalide annule tout et nomme la ligne |
+| B3 | Seul le comité gère les thèmes | `ThemeAdminTest` : participant, modérateur et administrateur reçoivent 403 |
+| B4 | Thème fermé ou archivé refuse une proposition par requête directe | `ProposalCreationTest` via le service |
+| B5 | Historique complet | `ProposalShowTest`, `ProposalEditTest` : révision à la création et à chaque modification, type rédaction ou correction |
+| B6 | Aucune donnée personnelle sur une fiche | `ProposalShowTest` : ni e-mail ni haché dans le HTML |
+| B7 | Pages publiques sous 300 Ko | `PageWeightTest` : HTML + assets compilés mesurés sur trois pages |
+
+Suite complète : 110 tests, 450 assertions, PHPStan niveau 8 sans erreur. Pile Docker vérifiée avec le jeu de démonstration importé.
+
+## 9. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+
+| Question | Décision |
+| --- | --- |
+| Q1 Titre « formulé comme une mesure » | Aide affichée, pas de contrôle automatique |
+| Q2 Recherche texte | Meilisearch reporté au lot 3 avec la détection de doublons |
+| Q3 Plafonds | Appliqués dès ce lot : 3 propositions par mois et par thème, 20 arguments par jour, moitié pour les comptes de moins de 7 jours |
+| Q4 Thèmes de lancement | Économie, Emploi, Santé, Éducation, Défense, sans sous-thèmes (`ThemeSeeder`) |
+| Q5 Jeu d'amorçage | Format, commande et jeu synthétique de 200 lignes livrés ; le contenu réel viendra du comité éditorial |
+| Q6 Brouillons | Non : publication immédiate, correction ensuite |
+
+## 10. Questions posées à la validation
 
 - **Q1 — Contrôle du titre « formulé comme une mesure ».** Aide affichée seulement (recommandé au MVP), ou contrôle automatique sur une liste de verbes d'action à l'infinitif, avec les faux refus que cela implique ?
 - **Q2 — Recherche texte.** Reporter Meilisearch au lot 3 avec la détection de doublons (recommandé), ou l'intégrer dès ce lot pour une recherche sur les titres ?

@@ -9,6 +9,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -57,6 +59,28 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'password' => 'hashed',
             'role' => Role::class,
         ];
+    }
+
+    /** @return HasMany<Proposal, $this> */
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class, 'author_id');
+    }
+
+    /** @return HasMany<Argument, $this> */
+    public function arguments(): HasMany
+    {
+        return $this->hasMany(Argument::class, 'author_id');
+    }
+
+    /**
+     * Arguments marqués « utile ».
+     *
+     * @return BelongsToMany<Argument, $this>
+     */
+    public function markedArguments(): BelongsToMany
+    {
+        return $this->belongsToMany(Argument::class, 'argument_marks', 'participant_id', 'argument_id');
     }
 
     public function hasRole(Role $role): bool

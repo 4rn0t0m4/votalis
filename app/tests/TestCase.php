@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Vite;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -13,6 +14,9 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Les tests rendent toujours les assets compilés, jamais le serveur de développement Vite.
+        Vite::useHotFile(storage_path('framework/testing/vite.hot'));
 
         // Vérification des mots de passe fuités (HIBP, k-anonymat) : aucune fuite par défaut.
         Http::fake(['api.pwnedpasswords.com/*' => fn () => Http::response($this->hibpBody, 200)]);

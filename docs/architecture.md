@@ -159,6 +159,12 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - `accounts:purge-inactive` (planifié chaque nuit) : préavis `InactivityNotice` à (36 mois − 30 jours) d'inactivité (`COALESCE(last_seen_at, created_at)`), suppression à 36 mois si le préavis date d'au moins 30 jours ; une visite annule le préavis ; rôles privilégiés exclus ; `--dry-run`. `auth:clear-resets` quotidien.
 - Pages publiques `/confidentialite`, `/mentions-legales`, `/cookies` (aucune bannière : cookies techniques seulement), lues depuis `config('votalis.legal')` (`LEGAL_*`, à renseigner en production). Projets de registre des traitements et d'AIPD dans `docs/rgpd/`, à faire valider par un juriste ou un DPO.
 
+## Lot 5, phase B : accessibilité et sobriété
+
+- Audit automatisé `make a11y` (pa11y-ci, axe-core + HTML CodeSniffer, WCAG 2 AA, configuration `app/.pa11yci.json`, navigateur local) sur les cinq pages principales, vote rapide inclus après connexion avec le compte de démonstration. Résultat : 5/5 sans erreur. Grille RGAA 4.1 par thématique dans `docs/accessibilite.md`, déclaration publique sur `/accessibilite`.
+- Corrections : pagination accessible (`resources/views/vendor/pagination/tailwind.blade.php`, `aria-current`, textes `sr-only`, éléments inactifs masqués), cibles tactiles d'au moins 44 px sur les boutons et les choix de vote (`min-h-11`), état coché visible sans la couleur seule.
+- Sobriété : `PageWeightTest` mesure HTML + ressources compilées + script Livewire des cinq pages, limite 300 Ko (CDC section 11) ; passe si `public/build` existe, sinon test ignoré avec message.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |

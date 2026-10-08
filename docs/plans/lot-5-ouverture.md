@@ -1,6 +1,6 @@
 # Plan du lot 5 — Ouverture
 
-Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phase A réalisée, phase B en cours**.
+Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phases A et B réalisées, phase C en cours**.
 Référence : cahier des charges, sections 7 (sécurité, résilience), 8 (RGPD), 11 (exigences non fonctionnelles), 12 (hébergement), 13 et 14. Branche : `lot-5-ouverture`.
 
 ## 1. Objectif et critères d'acceptation
@@ -84,7 +84,11 @@ Reporté : vérification téléphonique, fusions, consensus (V2) ; export open d
 
 Livré : export JSON (E3), suppression en libre-service avec mot de passe (E4), date de dernière visite et purge d'inactivité avec préavis (E5), purge quotidienne des jetons (E6), pages confidentialité, mentions légales et cookies, lien de consentement à l'inscription, registre des traitements et AIPD en projet. Suite : 204 tests, 1 022 assertions. Point d'attention découvert : `logout()` après `delete()` réinsérait le compte via la rotation du jeton « se souvenir de moi » ; l'ordre est inversé et documenté.
 
-## 8. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+## 8. Point d'étape phase B (8 octobre 2026)
+
+Livré : audit automatisé pa11y/axe sur les cinq pages (5/5 sans erreur après correction de la pagination), grille RGAA 4.1 (`docs/accessibilite.md`), déclaration d'accessibilité `/accessibilite`, cibles tactiles ≥ 44 px pour le vote et le vote rapide, test automatisé du poids des pages (E7, toutes sous 300 Ko). L'audit RGAA par un tiers reste à commander (Q6). Suite : 205 tests.
+
+## 9. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
 
 | Question | Décision |
 | --- | --- |
@@ -97,7 +101,7 @@ Livré : export JSON (E3), suppression en libre-service avec mot de passe (E4), 
 | Q7 Responsable de traitement | Champs à compléter dans les documents |
 | Q8 Lecture seule | Page `/admin` (administrateur technique) + commande `votalis:read-only` |
 
-## 9. Questions posées à la validation
+## 10. Questions posées à la validation
 
 - **Q1 — Hébergeur et e-mail.** Le guide de déploiement peut rester générique (OVHcloud ou Scaleway, fournisseur d'e-mail européen comme Brevo). Avez-vous déjà un choix, ou je documente les deux options avec leurs points de vigilance ?
 - **Q2 — Matomo.** Le cahier des charges prévoit une mesure d'audience Matomo auto-hébergée en mode exempté. Je propose de la reporter au déploiement (service optionnel dans le compose de production, aucun script de mesure dans le MVP tant qu'elle n'est pas installée). D'accord ?

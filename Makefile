@@ -1,6 +1,6 @@
 COMPOSE = docker compose -f infra/compose.dev.yml --env-file app/.env
 
-.PHONY: help up down logs shell test lint stan hooks fresh
+.PHONY: help up down logs shell test lint stan hooks fresh a11y
 
 help: ## Liste des commandes
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -32,3 +32,6 @@ fresh: ## Réinitialise la base de développement
 hooks: ## Installe les hooks git (gitleaks, pint)
 	git config core.hooksPath infra/hooks
 	@echo "Hooks installés depuis infra/hooks."
+
+a11y: ## Audit d'accessibilité automatisé (pa11y, axe) des 5 pages principales sur http://localhost:8080
+	cd app && npx pa11y-ci --config .pa11yci.json

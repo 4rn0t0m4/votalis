@@ -49,7 +49,17 @@ jobs:
           coverage: none
       - uses: actions/setup-node@v4
         with: { node-version: '22', cache: npm, cache-dependency-path: app/package-lock.json }
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('app/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
       - name: Composer
+        # Jeton d'exécution fourni à Composer pour éviter la limite de débit anonyme de GitHub (429) ;
+        # il est en lecture seule et n'existe pas pour les forks hostiles (droits réduits).
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: Audit des dépendances Composer
         run: composer audit --no-interaction

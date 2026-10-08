@@ -32,6 +32,6 @@ return [
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),
-    'repository_url' => env('APP_REPOSITORY_URL', 'https://codeberg.org/votalis/votalis'),
+    'repository_url' => env('APP_REPOSITORY_URL', 'https://codeberg.org/Orfeo/votalis'),
 
 ];

@@ -23,6 +23,7 @@
                     <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Comité</a></li>
                 @endcan
                 @auth
+                    <li><a href="{{ route('quick-vote') }}" class="hover:underline">Vote rapide</a></li>
                     <li><a href="{{ route('account.show') }}" class="hover:underline">Mon compte</a></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">

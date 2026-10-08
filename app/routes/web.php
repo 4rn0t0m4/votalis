@@ -14,6 +14,7 @@ Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
 Route::get('/themes/{theme:slug}', [ThemeController::class, 'show'])->name('themes.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::view('/vote-rapide', 'quick-vote')->name('quick-vote');
     Route::get('/propositions/nouvelle', [ProposalController::class, 'create'])->name('proposals.create');
     Route::get('/propositions/{proposal}/modifier', [ProposalController::class, 'edit'])->whereNumber('proposal')->name('proposals.edit');
 });

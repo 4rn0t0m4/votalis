@@ -1,6 +1,6 @@
 # Architecture
 
-Document tenu à jour à chaque lot. État : lot 2 (Contenu), 8 octobre 2026.
+Document tenu à jour à chaque lot. État : lot 3 phase A (votes et classements), 8 octobre 2026.
 
 ## Vue d'ensemble
 
@@ -69,6 +69,18 @@ Les auteurs sont référencés par `author_id` (nullable, mis à null à la supp
 ### Interface
 
 Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`App\Livewire\ProposalForm`, compteurs et sources dynamiques) et les colonnes d'arguments (`ArgumentColumn`, dépôt et marque « utile »). Routes : `/themes`, `/themes/{slug}`, `/propositions/nouvelle`, `/propositions/{id}/{slug}`, `/propositions/{id}/modifier`, `/comite/themes`.
+
+## Lot 3, phase A : votes et classements
+
+| Table | Rôle |
+| --- | --- |
+| `votes` | Clé composite participant + proposition ; `desirable` et `necessary` (−1, 0, 1, contraintes CHECK), `condition` (200), `desirable_initial` et `necessary_initial` conservés, `revised_after_arguments` ; effacés avec le compte |
+| `proposals.votes_count` | Compteur dénormalisé tenu par `VoteService`, utilisé par le vote rapide et les classements |
+
+- `App\Services\VoteService` : un vote par compte et par proposition, révisable ; interdit sur sa propre fiche et sur une fiche non publiée ; plafond quotidien (nouveaux votes seulement) via `ContributionCaps` ; le premier vote pose `content_locked_at` ; une révision depuis une vue où les arguments sont visibles marque `revised_after_arguments`.
+- `QuickVoteSelector` : tirage pondéré (récentes × 3, peu votées × 2) parmi les fiches non votées, jamais les siennes.
+- `Rankings` : onglets par thème, cache 5 minutes, définitions dans `docs/classement.md` ; les onglets « arbitrages » et « consensuelles » sont annoncés comme à venir.
+- Livewire : `VoteBox` (fiche et vote rapide, résultats après le vote), `QuickVote` (une fiche à la fois, arguments repliés, passage à la suivante).
 
 ## Environnements
 

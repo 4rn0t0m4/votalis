@@ -37,6 +37,8 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, ProposalSource> $sources
  * @property-read Collection<int, ProposalRevision> $revisions
  * @property-read Collection<int, Argument> $arguments
+ * @property-read Collection<int, Vote> $votes
+ * @property int $votes_count
  */
 #[Fillable(['theme_id', 'author_id', 'title', 'problem', 'measure', 'cost_estimate', 'cost_unknown', 'origin', 'seed_source', 'status', 'content_locked_at'])]
 class Proposal extends Model
@@ -85,6 +87,12 @@ class Proposal extends Model
     public function arguments(): HasMany
     {
         return $this->hasMany(Argument::class);
+    }
+
+    /** @return HasMany<Vote, $this> */
+    public function votes(): HasMany
+    {
+        return $this->hasMany(Vote::class);
     }
 
     /** @param  Builder<Proposal>  $query */

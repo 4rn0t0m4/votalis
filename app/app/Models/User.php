@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,6 +30,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
+ * @property-read Collection<int, Vote> $votes
  */
 #[Fillable(['pseudonym', 'email', 'password', 'consented_at'])]
 #[Hidden(['password', 'remember_token', 'email', 'email_hash', 'two_factor_secret', 'two_factor_recovery_codes'])]
@@ -71,6 +73,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function arguments(): HasMany
     {
         return $this->hasMany(Argument::class, 'author_id');
+    }
+
+    /** @return HasMany<Vote, $this> */
+    public function votes(): HasMany
+    {
+        return $this->hasMany(Vote::class, 'participant_id');
     }
 
     /**

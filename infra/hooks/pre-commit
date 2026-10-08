@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# Hook pre-commit : gitleaks sur les fichiers indexés, puis Pint sur le PHP indexé.
+# Installation : make hooks
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks est requis (brew install gitleaks)." >&2
+  exit 1
+fi
+
+gitleaks git --pre-commit --staged --redact --config .gitleaks.toml
+
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACM -- 'app/*.php' | sed 's#^app/##')
+if [ -n "$STAGED_PHP" ] && [ -x app/vendor/bin/pint ]; then
+  (cd app && ./vendor/bin/pint --test $STAGED_PHP)
+fi

@@ -54,6 +54,8 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Base** : PostgreSQL 16, extensions `vector` et `pgcrypto`. Les tests tournent sur PostgreSQL.
 - **Nom du site** : non choisi. « votalis » est un nom de code technique ; l'interface lit `APP_NAME`, jamais de nom codé en dur.
 
+- **nginx et scripts dynamiques** : Livewire 4 sert son script sous `/livewire-<empreinte>/livewire.js` (aucun fichier dans `public/`). La règle nginx des ressources statiques (`infra/docker/nginx/default.conf`) retombe donc sur `index.php` au lieu de renvoyer 404, sinon toute l'interactivité (vote, arbitrages, formulaires) est muette alors que les pages s'affichent normalement. En développement, après avoir réécrit ce fichier, recréer le conteneur (`docker compose up -d --force-recreate web`) : le montage d'un fichier seul ne suit pas un changement d'inode.
+
 ## Contenu (lot 2)
 
 - **Format imposé** : toutes les règles de la fiche vivent dans `App\Services\ProposalRules` ; formulaire, modification et import passent par `ProposalService`. Ne jamais valider une fiche ailleurs.

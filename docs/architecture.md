@@ -185,7 +185,7 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | Environnement | Où | Base | E-mail |
 | --- | --- | --- | --- |
 | Développement | Docker local (`infra/compose.dev.yml`) | PostgreSQL conteneur | Mailpit |
-| CI | Woodpecker (Codeberg) | PostgreSQL service | Mailer `array` |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) | PostgreSQL service | Mailer `array` |
 | Préproduction, production | Hébergeur européen à choisir (OVHcloud ou Scaleway) | PostgreSQL managé ou conteneur | Brevo |
 
 ## Décisions
@@ -194,6 +194,7 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | --- | --- | --- |
 | 2026-10-08 | Livewire 4 plutôt qu'Inertia + Vue | Pages publiques légères, compétence Blade existante |
 | 2026-10-08 | Codeberg + Woodpecker CI, miroir GitHub lecture seule | Forge européenne |
+| 2026-10-08 | **Dépôt principal déplacé sur GitHub, CI GitHub Actions** | Codeberg a signalé que ses CGU (§2.1.7) interdisent les projets majoritairement écrits par IA générative ; Woodpecker n'a jamais été accordé. Le code est public et ne contient ni donnée personnelle ni secret : le Cloud Act ne s'y applique à rien de sensible. Écart assumé avec la section 12 du cahier des charges ; les données des participants restent chez un hébergeur européen. Repli possible vers un Forgejo auto-hébergé en une commande |
 | 2026-10-08 | HIBP en k-anonymat pour les mots de passe fuités | Aucune donnée personnelle transmise ; auto-hébergement étudié au lot 5 |
 | 2026-10-08 | Rôles en colonne enum + Gates, sans package de permissions | Cinq rôles fixes définis par le cahier des charges |
 | 2026-10-08 | `laravel/passkeys` plutôt que `laragear/webauthn` | Le second est abandonné au profit du paquet officiel, intégré à Fortify |

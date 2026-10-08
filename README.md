@@ -23,6 +23,10 @@ Après un import ou un seed : `php artisan scout:sync-index-settings && php arti
 
 Comptes de développement créés par le seeder : `participante`, `moderateur`, `comite`, `admin` (mot de passe `mot-de-passe-de-test-123`, TOTP de test pour les rôles privilégiés : secret `JBSWY3DPEHPK3PXP`).
 
+## Mode de production du code
+
+Ce code a été écrit avec un assistant d'IA (Claude, Anthropic), à partir d'un cahier des charges rédigé par l'auteur du projet, lot par lot, chaque lot ayant fait l'objet d'un plan validé, de tests écrits avec le code et d'une relecture par pull request. Chaque commit porte la mention `Co-Authored-By`. Le dépôt a été déplacé de Codeberg vers GitHub le 8 octobre 2026, les conditions d'utilisation de Codeberg excluant ce mode de production (voir `docs/architecture.md`, décisions).
+
 ## Qualité
 
 ```sh

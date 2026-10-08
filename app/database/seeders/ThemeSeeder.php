@@ -15,6 +15,7 @@ class ThemeSeeder extends Seeder
         ['name' => 'Santé', 'slug' => 'sante', 'icon' => 'pulse', 'description' => 'Hôpital, médecine de ville, prévention, assurance maladie.'],
         ['name' => 'Éducation', 'slug' => 'education', 'icon' => 'graduation', 'description' => 'École, université, recherche, orientation.'],
         ['name' => 'Défense', 'slug' => 'defense', 'icon' => 'shield', 'description' => 'Armées, budget de la défense, sécurité nationale, Europe de la défense.'],
+        ['name' => 'Écologie', 'slug' => 'ecologie', 'icon' => 'leaf', 'description' => 'Climat, énergie, eau, forêts, biodiversité, transition écologique.'],
     ];
 
     public function run(): void

@@ -30,9 +30,9 @@
 
         <h2 class="mt-8 text-xl font-semibold">Lire le code</h2>
         <ul class="mt-3 list-disc space-y-2 pl-5 text-ink-700">
-            <li><a href="{{ $repo }}/src/branch/main/app/app/Services/Rankings.php" rel="noopener" class="underline">Le service de classement</a>, qui calcule chaque onglet.</li>
-            <li><a href="{{ $repo }}/src/branch/main/docs/classement.md" rel="noopener" class="underline">Les définitions formelles</a>, mises à jour à chaque changement.</li>
-            <li><a href="{{ $repo }}/src/branch/main/app/app/Services/QuickVoteSelector.php" rel="noopener" class="underline">Le tirage du vote rapide</a>.</li>
+            <li><a href="{{ $repo }}/blob/main/app/app/Services/Rankings.php" rel="noopener" class="underline">Le service de classement</a>, qui calcule chaque onglet.</li>
+            <li><a href="{{ $repo }}/blob/main/docs/classement.md" rel="noopener" class="underline">Les définitions formelles</a>, mises à jour à chaque changement.</li>
+            <li><a href="{{ $repo }}/blob/main/app/app/Services/QuickVoteSelector.php" rel="noopener" class="underline">Le tirage du vote rapide</a>.</li>
         </ul>
     </article>
 </x-layouts.app>

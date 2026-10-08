@@ -24,7 +24,7 @@ app/          Laravel 13, PHP 8.3+, Livewire 4, Tailwind 4
 consensus/    Service Python (FastAPI, scikit-learn) — V2
 infra/        Docker (dev), nginx, hooks git
 docs/         architecture.md, classement.md, plans/
-.woodpecker/  CI
+.github/     CI (GitHub Actions)
 ```
 
 ## Commandes

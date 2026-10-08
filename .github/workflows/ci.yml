@@ -1,0 +1,89 @@
+# CI GitHub Actions. Aucun secret n'est requis : les pull requests depuis un fork n'en voient aucun (A1 du lot 1).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Secrets (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:latest git --redact --config .gitleaks.toml --log-opts="--all" .
+
+  php:
+    name: PHP (Pint, PHPStan, tests)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: votalis_test
+          POSTGRES_USER: votalis
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U votalis -d votalis_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    defaults:
+      run: { working-directory: app }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, pcntl, redis
+          coverage: none
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: app/package-lock.json }
+      - name: Composer
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Audit des dépendances Composer
+        run: composer audit --no-interaction
+      - name: Ressources (Vite)
+        run: npm ci --no-audit --no-fund && npm run build
+      - name: Audit des dépendances npm (production)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Environnement de test
+        run: cp .env.example .env && php artisan key:generate --force && php artisan votalis:hash-key
+      - name: Pint
+        run: ./vendor/bin/pint --test
+      - name: PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+      - name: Tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: votalis_test
+          DB_USERNAME: votalis
+          DB_PASSWORD: ci-only-not-a-secret
+        run: php artisan test --compact
+
+  python:
+    name: Python (Ruff, mypy, pytest, pip-audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: consensus }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q -r requirements-test.txt pip-audit
+      - run: ruff check . && ruff format --check .
+      - run: mypy
+      - run: pytest -q
+      - name: Audit des dépendances Python
+        run: pip-audit -r requirements.txt

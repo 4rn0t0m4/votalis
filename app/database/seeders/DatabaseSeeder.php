@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Role;
+use App\Models\Proposal;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -13,13 +14,35 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(ThemeSeeder::class);
+
         if (app()->isProduction()) {
             return;
         }
 
-        User::factory()->create(['pseudonym' => 'participante', 'email' => 'participante@example.test']);
-        User::factory()->role(Role::Moderator)->withTwoFactor()->create(['pseudonym' => 'moderateur', 'email' => 'moderateur@example.test']);
-        User::factory()->role(Role::Editorial)->withTwoFactor()->create(['pseudonym' => 'comite', 'email' => 'comite@example.test']);
-        User::factory()->role(Role::Admin)->withTwoFactor()->create(['pseudonym' => 'admin', 'email' => 'admin@example.test']);
+        $this->account('participante', Role::Participant);
+        $this->account('moderateur', Role::Moderator);
+        $this->account('comite', Role::Editorial);
+        $this->account('admin', Role::Admin);
+
+        if (Proposal::query()->doesntExist()) {
+            $this->call(DemoProposalSeeder::class);
+        }
+    }
+
+    /** Compte de développement, créé une seule fois. */
+    private function account(string $pseudonym, Role $role): void
+    {
+        if (User::query()->where('pseudonym', $pseudonym)->exists()) {
+            return;
+        }
+
+        $factory = User::factory()->role($role);
+
+        if ($role->isPrivileged()) {
+            $factory = $factory->withTwoFactor();
+        }
+
+        $factory->create(['pseudonym' => $pseudonym, 'email' => "{$pseudonym}@example.test"]);
     }
 }

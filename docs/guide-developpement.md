@@ -52,6 +52,15 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Base** : PostgreSQL 16, extensions `vector` et `pgcrypto`. Les tests tournent sur PostgreSQL.
 - **Nom du site** : non choisi. « votalis » est un nom de code technique ; l'interface lit `APP_NAME`, jamais de nom codé en dur.
 
+## Contenu (lot 2)
+
+- **Format imposé** : toutes les règles de la fiche vivent dans `App\Services\ProposalRules` ; formulaire, modification et import passent par `ProposalService`. Ne jamais valider une fiche ailleurs.
+- **Plafonds** : `App\Services\ContributionCaps`, valeurs dans `config/votalis.php` (`caps.*`). Toute nouvelle forme de contribution passe par ce service.
+- **Verrou du fond** : `content_locked_at` est posé par le premier vote (lot 3) ; ensuite `ProposalService::update` n'accepte que des corrections de forme.
+- **Import** : `php artisan proposals:import fichier.csv [--dry-run]`, format dans `docs/import-amorcage.md`, jeu de test `tests/Fixtures/amorcage-200.csv`.
+- **Livewire** : composants de classe dans `app/Livewire`, vues dans `resources/views/livewire`. Les paramètres de `mount()` homonymes d'une propriété publique y sont affectés directement : typer la propriété en conséquence (ex. `ArgumentSide $side`).
+- **Tests** : `Vite::useHotFile()` pointe vers un fichier inexistant dans `Tests\TestCase` pour que les pages rendent les assets compilés même quand le serveur Vite de développement tourne.
+
 ## Conventions
 
 - Interface en **français**, chaînes externalisées dans `app/lang/fr/`.

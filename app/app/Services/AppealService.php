@@ -99,6 +99,7 @@ class AppealService
     /** Annulation : le contenu redevient visible, ou la suspension est levée. */
     private function restore(ModerationLogEntry $contested): void
     {
+        app(PublicPageCache::class)->flush();
         $target = $contested->target;
 
         if ($target instanceof Proposal) {

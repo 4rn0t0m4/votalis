@@ -24,7 +24,7 @@ app/          Laravel 13, PHP 8.3+, Livewire 4, Tailwind 4
 consensus/    Service Python (FastAPI, scikit-learn) — V2
 infra/        Docker (dev), nginx, hooks git
 docs/         architecture.md, classement.md, plans/
-.woodpecker/  CI
+.github/     CI (GitHub Actions)
 ```
 
 ## Commandes
@@ -36,6 +36,8 @@ make test        # php artisan test (sur PostgreSQL, jamais SQLite)
 make lint        # Pint en vérification
 make stan        # PHPStan niveau 8
 make hooks       # Installe le pre-commit (gitleaks + Pint)
+make a11y        # Audit d'accessibilité des 5 pages principales (pa11y, navigateur local)
+make load        # Test de charge k6 (conteneur) · make bench-votes · make backup-test · make audit-deps
 ```
 
 Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
@@ -84,6 +86,15 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Affichage** : un contenu non publié passe par `proposals.hidden` (bandeau) ou une ligne « Argument masqué » ; les requêtes publiques filtrent avec `published()`.
 - **Tests** : dans Docker, `APP_ENV=local` est exporté par Compose ; `phpunit.xml` force `APP_ENV=testing` via `<env>` et `<server>`. Les simulations HTTP du service d'embeddings utilisent le motif `*/embed`, valable sur l'hôte comme dans le conteneur. Une erreur PostgreSQL attendue dans un test doit être isolée par `DB::beginTransaction()` / `rollBack()` (point de sauvegarde), sinon la transaction du test est avortée.
 - **Blade** : une directive inline doit être précédée d'un espace (`modération @if (...)`) ; collée à un mot (`modération@if`), elle n'est pas compilée.
+
+## Ouverture (lot 5)
+
+- **Données personnelles** : export uniquement par `AccountExporter` (aucune donnée d'un tiers), suppression uniquement par `AccountEraser` (déconnecter **avant** d'appeler `erase()` dans un contrôleur). Toute nouvelle table liée à `users` choisit explicitement `cascadeOnDelete` (donnée personnelle) ou `nullOnDelete` (contenu public) et est ajoutée à l'export.
+- **Inactivité** : `TrackLastSeen` écrit `last_seen_at` au jour près ; ne jamais ajouter d'heure, d'IP ni d'historique.
+- **Accessibilité** : `make a11y` doit rester à 5/5 (pile Docker démarrée, données de démonstration chargées) ; toute nouvelle page publique majeure s'ajoute à `app/.pa11yci.json` et à `docs/accessibilite.md`. Boutons et choix de vote : hauteur minimale 44 px (`min-h-11`). `PageWeightTest` borne les pages à 300 Ko.
+- **Lecture seule** : toute nouvelle écriture participante appelle `app(ReadOnlyMode::class)->assertWritable()` dans son service, en plus du middleware global. **Cache** : jamais de modèle Eloquent dans `Cache` (Laravel 13 ne désérialise pas d'objets) ; les pages publiques sont en cache 60 s pour les visiteurs, appeler `PublicPageCache::flush()` après toute écriture qui change une page publique.
+- **Exploitation** : `docs/exploitation.md` (déploiement `infra/compose.prod.yml`, sauvegardes `infra/backup/`, charge `infra/load/`), `docs/securite.md` (ASVS, dossier d'audit).
+- **Pages légales** : `config('votalis.legal')`, valeurs dans l'environnement (`LEGAL_*`), jamais dans le dépôt. Documents internes dans `docs/rgpd/`.
 
 ## Conventions
 

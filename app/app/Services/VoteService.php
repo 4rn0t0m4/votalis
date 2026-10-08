@@ -29,6 +29,8 @@ class VoteService
      */
     public function cast(User $user, Proposal $proposal, VoteValue $desirable, VoteValue $necessary, ?string $condition, bool $afterArguments): Vote
     {
+        app(ReadOnlyMode::class)->assertWritable();
+
         if ($proposal->status !== ProposalStatus::Published) {
             throw ValidationException::withMessages(['proposal' => [__('Cette proposition n’est pas ouverte au vote.')]]);
         }

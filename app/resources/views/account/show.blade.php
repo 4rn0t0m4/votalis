@@ -11,5 +11,6 @@
     <ul class="mt-6 space-y-2 text-sm">
         <li><a href="{{ route('security.show') }}" class="underline">Sécurité du compte : double authentification et clés d'accès</a></li>
         <li><a href="{{ route('account.moderation.index') }}" class="underline">Modération : décisions concernant mes contributions et contestations</a></li>
+        <li><a href="{{ route('account.data.show') }}" class="underline">Mes données : export et suppression du compte</a></li>
     </ul>
 </x-layouts.app>

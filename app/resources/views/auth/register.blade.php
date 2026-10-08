@@ -17,7 +17,7 @@
                     <label for="consent" class="text-sm">
                         J'accepte que mes votes et contributions, qui peuvent révéler des opinions politiques, soient traités
                         pour faire fonctionner la plateforme, dans les conditions de la
-                        <a href="#" class="underline">politique de confidentialité</a>. Ils sont liés à un identifiant interne, jamais à mon e-mail.
+                        <a href="{{ route('privacy') }}" class="underline" target="_blank" rel="noopener">politique de confidentialité</a>. Ils sont liés à un identifiant interne, jamais à mon e-mail.
                     </label>
                 </div>
                 @error('consent')

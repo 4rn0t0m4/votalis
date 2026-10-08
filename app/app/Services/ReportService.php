@@ -29,6 +29,8 @@ class ReportService
      */
     public function report(User $reporter, Proposal|Argument $target, ReportMotive $motive, ?string $details = null): Report
     {
+        app(ReadOnlyMode::class)->assertWritable();
+
         Gate::forUser($reporter)->authorize('report', $target);
 
         if ($target->reports()->where('reporter_id', $reporter->id)->exists()) {
@@ -60,6 +62,7 @@ class ReportService
 
     private function hidePending(Proposal|Argument $target, ReportMotive $motive): void
     {
+        app(PublicPageCache::class)->flush();
         $target->forceFill([
             'status' => $target instanceof Proposal ? ProposalStatus::Hidden : ArgumentStatus::Hidden,
             'hidden_motive' => $motive,

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Rankings;
 use App\Services\VoteService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class RankingsTest extends TestCase
@@ -113,5 +114,26 @@ class RankingsTest extends TestCase
 
         $this->assertNotContains('soutien', array_map('mb_strtolower', array_keys(Rankings::labels())));
         $this->assertNotContains('populaires', array_map('mb_strtolower', array_keys(Rankings::labels())));
+    }
+
+    public function test_le_classement_en_cache_ne_serialise_aucun_modele(): void
+    {
+        // Magasin qui sérialise réellement (contrairement à `array`) : avec `cache.serializable_classes`
+        // à false, un modèle mis en cache reviendrait en __PHP_Incomplete_Class.
+        config(['cache.default' => 'file', 'votalis.rankings.cache_seconds' => 300]);
+        Cache::store('file')->flush();
+        $theme = Theme::factory()->create();
+        $proposal = Proposal::factory()->create(['theme_id' => $theme->id, 'title' => 'Fiche classée']);
+        Argument::factory()->count(2)->create(['proposal_id' => $proposal->id]);
+
+        $first = app(Rankings::class)->forTheme($theme, 'debattues');
+        $second = app(Rankings::class)->forTheme($theme, 'debattues');
+
+        $this->assertSame(['Fiche classée'], $first->pluck('title')->all());
+        $this->assertSame(['Fiche classée'], $second->pluck('title')->all());
+        $this->assertInstanceOf(Proposal::class, $second->first());
+        $this->assertNotNull($second->first()?->getAttribute('metric'));
+        $this->assertNotNull($second->first()?->theme);
+        Cache::store('file')->flush();
     }
 }

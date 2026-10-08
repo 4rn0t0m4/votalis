@@ -27,6 +27,8 @@ class ProposalService
      */
     public function create(array $input, ?User $author, ProposalOrigin $origin = ProposalOrigin::Citizen, ?string $seedSource = null): Proposal
     {
+        app(ReadOnlyMode::class)->assertWritable();
+
         $data = $this->validate($input);
 
         /** @var Theme $theme */
@@ -73,6 +75,8 @@ class ProposalService
      */
     public function update(Proposal $proposal, array $input, User $author): Proposal
     {
+        app(ReadOnlyMode::class)->assertWritable();
+
         $data = $this->validate($input);
         $kind = RevisionKind::Content;
         // Reformulation demandée par la modération : une modification de fond malgré le verrou.
@@ -191,6 +195,7 @@ class ProposalService
 
     private function record(Proposal $proposal, ?User $author, RevisionKind $kind): void
     {
+        app(PublicPageCache::class)->flush();
         $proposal->load('sources');
         $proposal->revisions()->create([
             'author_id' => $author?->id,

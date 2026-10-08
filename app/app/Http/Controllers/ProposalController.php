@@ -13,8 +13,15 @@ class ProposalController extends Controller
 {
     public function show(Request $request, Proposal $proposal, ?string $slug = null): View|RedirectResponse
     {
-        if ($proposal->status !== ProposalStatus::Published && ! $request->user()?->can('moderate')) {
-            abort(404);
+        $fullAccess = $proposal->status === ProposalStatus::Published
+            || Gate::forUser($request->user())->allows('viewHidden', $proposal);
+
+        // Contenu masqué : bandeau public avec le motif et le journal, sans titre ni adresse canonique si illégal.
+        if (! $fullAccess) {
+            return view('proposals.hidden', [
+                'proposal' => $proposal,
+                'entry' => $proposal->moderationEntries()->first(),
+            ]);
         }
 
         if ($slug !== $proposal->slug()) {
@@ -23,7 +30,10 @@ class ProposalController extends Controller
 
         $proposal->load(['theme.parent', 'author', 'sources', 'revisions.author']);
 
-        return view('proposals.show', ['proposal' => $proposal]);
+        return view('proposals.show', [
+            'proposal' => $proposal,
+            'moderationEntry' => $proposal->isModerated() ? $proposal->moderationEntries()->first() : null,
+        ]);
     }
 
     public function create(): View

@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  */
 class ProposalService
 {
-    public function __construct(private readonly ContributionCaps $caps) {}
+    public function __construct(private readonly ContributionCaps $caps, private readonly ModerationService $moderation) {}
 
     /**
      * @param  array<string, mixed>  $input
@@ -75,8 +75,10 @@ class ProposalService
     {
         $data = $this->validate($input);
         $kind = RevisionKind::Content;
+        // Reformulation demandée par la modération : une modification de fond malgré le verrou.
+        $rewrite = $proposal->awaitsRewrite() && $proposal->author_id === $author->id;
 
-        if ($proposal->isLocked()) {
+        if ($proposal->isLocked() && ! $rewrite) {
             $this->assertTypoOnly($proposal, $data);
             $kind = RevisionKind::Typo;
         } elseif ($data['theme_id'] !== $proposal->theme_id) {
@@ -88,7 +90,7 @@ class ProposalService
             }
         }
 
-        return DB::transaction(function () use ($proposal, $data, $author, $kind): Proposal {
+        return DB::transaction(function () use ($proposal, $data, $author, $kind, $rewrite): Proposal {
             $proposal->fill([
                 'theme_id' => $data['theme_id'],
                 'title' => $data['title'],
@@ -100,6 +102,10 @@ class ProposalService
 
             $this->syncSources($proposal, $data);
             $this->record($proposal, $author, $kind);
+
+            if ($rewrite) {
+                $this->moderation->rewriteReceived($proposal);
+            }
 
             if ($kind === RevisionKind::Content) {
                 ComputeProposalEmbedding::dispatch($proposal->id)->afterCommit();

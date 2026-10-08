@@ -88,6 +88,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Vote::class, 'participant_id');
     }
 
+    /** @return HasMany<Report, $this> */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
     /**
      * Arguments marqués « utile ».
      *

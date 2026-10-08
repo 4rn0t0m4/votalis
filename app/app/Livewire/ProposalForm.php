@@ -133,8 +133,9 @@ class ProposalForm extends Component
 
         if ($this->proposal !== null) {
             Gate::authorize('update', $this->proposal);
+            $rewrite = $this->proposal->awaitsRewrite();
             $proposal = $service->update($this->proposal, $input, $user);
-            session()->flash('status', 'Votre correction a été enregistrée.');
+            session()->flash('status', $rewrite ? 'Votre reformulation est enregistrée et la proposition est de nouveau visible.' : 'Votre correction a été enregistrée.');
         } else {
             Gate::authorize('create', Proposal::class);
             $proposal = $service->create($input, $user);
@@ -146,7 +147,8 @@ class ProposalForm extends Component
 
     public function render(): View
     {
-        $locked = $this->proposal?->isLocked() ?? false;
+        $proposal = $this->proposal;
+        $locked = $proposal !== null && $proposal->isLocked() && ! $proposal->awaitsRewrite();
 
         $themes = Theme::query()
             ->where('status', ThemeStatus::Open)
@@ -160,6 +162,8 @@ class ProposalForm extends Component
         return view('livewire.proposal-form', [
             'themes' => $themes,
             'locked' => $locked,
+            'rewrite' => $this->proposal?->awaitsRewrite() ?? false,
+            'rewriteMotive' => $this->proposal?->hidden_motive?->label(),
             'limits' => [
                 'title' => ProposalRules::TITLE_MAX,
                 'problem' => ProposalRules::PROBLEM_MAX,

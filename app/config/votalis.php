@@ -37,6 +37,7 @@ return [
         'proposals_per_month_per_theme' => (int) env('CAP_PROPOSALS_PER_MONTH_PER_THEME', 3),
         'arguments_per_day' => (int) env('CAP_ARGUMENTS_PER_DAY', 20),
         'votes_per_day' => (int) env('CAP_VOTES_PER_DAY', 300),
+        'reports_per_day' => (int) env('CAP_REPORTS_PER_DAY', 10),
         'new_account_days' => (int) env('CAP_NEW_ACCOUNT_DAYS', 7),
     ],
 
@@ -97,6 +98,17 @@ return [
     */
     'conditions' => [
         'threshold' => (float) env('CONDITIONS_THRESHOLD', 0.86),
+    ],
+
+    /*
+    | Modération (CDC section 6) : délai de contestation d'une décision, délai laissé à
+    | l'auteur pour reformuler, nombre d'entrées par page du journal public.
+    */
+    'moderation' => [
+        'appeal_days' => (int) env('APPEAL_DAYS', 14),
+        'rewrite_days' => (int) env('REWRITE_DAYS', 14),
+        'log_per_page' => 50,
+        'queue_per_page' => 50,
     ],
 
     /*

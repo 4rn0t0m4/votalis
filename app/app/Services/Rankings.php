@@ -112,7 +112,7 @@ class Rankings
                 )
                 ->select('proposals.*', 'tr.chosen', 'tr.answers')
                 ->whereRaw('tr.chosen > 0')
-                ->orderByRaw('tr.chosen::numeric / tr.answers desc, tr.chosen desc')
+                ->orderByRaw('tr.chosen::numeric / tr.answers desc, tr.chosen desc, proposals.id asc')
                 ->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', 'choisie dans '.VoteService::percent((int) $p->getAttribute('chosen'), (int) $p->getAttribute('answers')).' % des arbitrages ('.$p->getAttribute('chosen').' sur '.$p->getAttribute('answers').')')),
 

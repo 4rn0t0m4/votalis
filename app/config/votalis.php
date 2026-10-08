@@ -138,6 +138,29 @@ return [
     ],
 
     /*
+    | Conservation (CDC section 8) : un compte sans visite connectée depuis `inactive_months`
+    | mois est prévenu `notice_days` jours avant d'être supprimé.
+    */
+    'retention' => [
+        'inactive_months' => (int) env('RETENTION_INACTIVE_MONTHS', 36),
+        'notice_days' => (int) env('RETENTION_NOTICE_DAYS', 30),
+    ],
+
+    /*
+    | Mentions légales et politique de confidentialité : responsable de traitement et hébergeur,
+    | à renseigner dans l'environnement (jamais de valeur de production dans le dépôt).
+    */
+    'legal' => [
+        'controller_name' => env('LEGAL_CONTROLLER_NAME', '[Responsable de traitement à compléter]'),
+        'controller_address' => env('LEGAL_CONTROLLER_ADDRESS', '[Adresse à compléter]'),
+        'contact_email' => env('LEGAL_CONTACT_EMAIL', '[contact à compléter]'),
+        'dpo_email' => env('LEGAL_DPO_EMAIL'),
+        'host_name' => env('LEGAL_HOST_NAME', '[Hébergeur européen à compléter]'),
+        'host_address' => env('LEGAL_HOST_ADDRESS', '[Adresse de l’hébergeur à compléter]'),
+        'publication_director' => env('LEGAL_PUBLICATION_DIRECTOR', '[Directeur de la publication à compléter]'),
+    ],
+
+    /*
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),

@@ -68,6 +68,11 @@
                 · <a href="{{ route('transparency') }}" class="hover:underline">Transparence</a>
             </p>
             <p>
+                <a href="{{ route('privacy') }}" class="hover:underline">Confidentialité</a>
+                · <a href="{{ route('legal-notice') }}" class="hover:underline">Mentions légales</a>
+                · <a href="{{ route('cookies') }}" class="hover:underline">Cookies</a>
+            </p>
+            <p>
                 <a href="{{ config('votalis.repository_url') }}" rel="noopener" class="hover:underline">Dépôt du code</a>
                 @if (config('votalis.commit'))
                     · version <code>{{ Str::limit(config('votalis.commit'), 8, '') }}</code>

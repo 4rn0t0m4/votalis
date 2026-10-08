@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\ArgumentSide;
 use App\Enums\ArgumentStatus;
+use App\Enums\ReportMotive;
+use App\Models\Concerns\Moderatable;
 use Database\Factories\ArgumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,17 +24,18 @@ use Illuminate\Support\Carbon;
  * @property string $body
  * @property string|null $source_url
  * @property ArgumentStatus $status
+ * @property ReportMotive|null $hidden_motive
  * @property Carbon|null $created_at
  * @property-read int|null $marks_count
  * @property-read Proposal $proposal
  * @property-read User|null $author
  * @property-read Collection<int, User> $markedBy
  */
-#[Fillable(['proposal_id', 'author_id', 'side', 'body', 'source_url', 'status'])]
+#[Fillable(['proposal_id', 'author_id', 'side', 'body', 'source_url', 'status', 'hidden_motive'])]
 class Argument extends Model
 {
     /** @use HasFactory<ArgumentFactory> */
-    use HasFactory;
+    use HasFactory, Moderatable;
 
     /**
      * @return array<string, string>
@@ -42,6 +45,7 @@ class Argument extends Model
         return [
             'side' => ArgumentSide::class,
             'status' => ArgumentStatus::class,
+            'hidden_motive' => ReportMotive::class,
         ];
     }
 
@@ -76,5 +80,10 @@ class Argument extends Model
     public function authorName(): string
     {
         return $this->author->pseudonym ?? 'Participant supprimé';
+    }
+
+    public function url(): string
+    {
+        return $this->proposal->url().'#argument-'.$this->id;
     }
 }

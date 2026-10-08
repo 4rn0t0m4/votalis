@@ -21,6 +21,15 @@
                 <li><a href="{{ route('tradeoffs.index') }}" class="hover:underline">Arbitrages</a></li>
                 <li><a href="{{ route('search') }}" class="hover:underline">Rechercher</a></li>
                 <li><a href="{{ route('how-it-works') }}" class="hover:underline">Comment ça marche</a></li>
+                @can('moderate')
+                    <li><a href="{{ route('moderation.queue') }}" class="hover:underline">Modération</a></li>
+                @endcan
+                @can('arbitrate-appeals')
+                    <li><a href="{{ route('moderation.appeals.index') }}" class="hover:underline">Contestations</a></li>
+                @endcan
+                @can('view-integrity-signals')
+                    <li><a href="{{ route('moderation.signals.index') }}" class="hover:underline">Signaux</a></li>
+                @endcan
                 @can('manage-themes')
                     <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Thèmes (comité)</a></li>
                     <li><a href="{{ route('committee.tradeoffs.index') }}" class="hover:underline">Arbitrages (comité)</a></li>
@@ -52,6 +61,12 @@
     <footer class="border-t border-ink-200 bg-white text-sm text-ink-500">
         <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-4">
             <p>Plateforme indépendante et non partisane. Code source libre (AGPL v3).</p>
+            <p>
+                <a href="{{ route('charter') }}" class="hover:underline">Charte de modération</a>
+                · <a href="{{ route('moderation-log.index') }}" class="hover:underline">Journal de modération</a>
+                · <a href="{{ route('ranking-explained') }}" class="hover:underline">Comment fonctionne le classement</a>
+                · <a href="{{ route('transparency') }}" class="hover:underline">Transparence</a>
+            </p>
             <p>
                 <a href="{{ config('votalis.repository_url') }}" rel="noopener" class="hover:underline">Dépôt du code</a>
                 @if (config('votalis.commit'))

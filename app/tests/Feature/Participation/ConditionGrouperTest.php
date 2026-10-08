@@ -18,7 +18,7 @@ class ConditionGrouperTest extends TestCase
 
     public function test_regroupe_les_conditions_proches_et_choisit_un_libelle_central(): void
     {
-        Http::fake(['localhost:8001/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [
+        Http::fake(['*/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [
             [1.0, 0.0, 0.0],
             [0.98, 0.2, 0.0],
             [0.0, 1.0, 0.0],
@@ -40,7 +40,7 @@ class ConditionGrouperTest extends TestCase
 
     public function test_sans_service_chaque_condition_forme_son_groupe(): void
     {
-        Http::fake(['localhost:8001/*' => Http::response('', 503)]);
+        Http::fake(['*/*' => Http::response('', 503)]);
 
         $groups = app(ConditionGrouper::class)->group(['a', 'b']);
 
@@ -49,7 +49,7 @@ class ConditionGrouperTest extends TestCase
 
     public function test_un_vote_conditionnel_declenche_le_regroupement_affiche_dans_les_resultats(): void
     {
-        Http::fake(['localhost:8001/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [[1, 0, 0], [1, 0, 0]]])]);
+        Http::fake(['*/embed' => Http::response(['model' => 'x', 'dimension' => 3, 'vectors' => [[1, 0, 0], [1, 0, 0]]])]);
         $proposal = Proposal::factory()->create();
         $service = app(VoteService::class);
 

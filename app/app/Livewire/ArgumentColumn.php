@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ArgumentSide;
+use App\Enums\ArgumentStatus;
 use App\Models\Argument;
 use App\Models\Proposal;
 use App\Models\User;
@@ -79,8 +80,9 @@ class ArgumentColumn extends Component
     {
         $user = auth()->user();
 
+        // Les arguments masqués restent listés sous forme de bandeau (CDC section 6), jamais leur texte.
         $arguments = Argument::query()
-            ->published()
+            ->whereIn('status', [ArgumentStatus::Published, ArgumentStatus::Hidden])
             ->where('proposal_id', $this->proposalId)
             ->where('side', $this->side->value)
             ->with('author')
@@ -94,7 +96,9 @@ class ArgumentColumn extends Component
 
         return view('livewire.argument-column', [
             'arguments' => $arguments,
+            'publishedCount' => $arguments->filter(fn (Argument $a) => $a->isPublished())->count(),
             'marked' => $marked,
+            'canReport' => $user instanceof User && $user->can('participate'),
             'sideEnum' => $this->side,
             'sideKey' => $this->side->value,
             'canContribute' => $user instanceof User && Gate::forUser($user)->allows('create', Argument::class),

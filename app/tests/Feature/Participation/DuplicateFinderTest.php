@@ -62,7 +62,7 @@ class DuplicateFinderTest extends TestCase
         $existing = Proposal::factory()->create(['title' => 'Alléger les cotisations des petites entreprises']);
         $this->storeEmbedding($existing, $this->vector(1.0, 0.0));
 
-        Http::fake(['localhost:8001/embed' => Http::response(['model' => 'x', 'dimension' => 384, 'vectors' => [$this->vector(1.0, 0.05)]])]);
+        Http::fake(['*/embed' => Http::response(['model' => 'x', 'dimension' => 384, 'vectors' => [$this->vector(1.0, 0.05)]])]);
 
         $theme = Theme::factory()->create();
 
@@ -81,7 +81,7 @@ class DuplicateFinderTest extends TestCase
 
     public function test_sans_service_le_formulaire_reste_utilisable(): void
     {
-        Http::fake(['localhost:8001/*' => Http::response('', 503)]);
+        Http::fake(['*/*' => Http::response('', 503)]);
 
         Livewire::actingAs(User::factory()->create())->test(ProposalForm::class)
             ->set('theme_id', Theme::factory()->create()->id)
@@ -93,7 +93,7 @@ class DuplicateFinderTest extends TestCase
 
     public function test_le_depot_met_en_file_le_calcul_du_vecteur(): void
     {
-        Http::fake(['localhost:8001/embed' => Http::response(['model' => 'x', 'dimension' => 384, 'vectors' => [$this->vector(0.3, 0.7)]])]);
+        Http::fake(['*/embed' => Http::response(['model' => 'x', 'dimension' => 384, 'vectors' => [$this->vector(0.3, 0.7)]])]);
 
         $proposal = app(ProposalService::class)->create([
             'theme_id' => Theme::factory()->create()->id,

@@ -1,5 +1,9 @@
 <form wire:submit="save" class="max-w-2xl space-y-6" novalidate>
-    @if ($locked)
+    @if ($rewrite ?? false)
+        <x-alert type="info">
+            La modération vous demande de reformuler cette proposition ({{ $rewriteMotive }}). Vous pouvez en modifier le fond une fois ; elle redeviendra visible dès l'enregistrement.
+        </x-alert>
+    @elseif ($locked)
         <x-alert type="info">
             Cette proposition a déjà reçu des votes : vous pouvez corriger la forme (fautes, formulation), mais ni le fond, ni le thème, ni le coût, ni les sources. Un changement de fond passe par une variante.
         </x-alert>

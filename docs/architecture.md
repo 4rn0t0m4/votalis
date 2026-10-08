@@ -108,6 +108,22 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - Administration `/comite/arbitrages` (capacité `manage-tradeoffs`, comité éditorial) ; pages publiques `/arbitrages`, `/arbitrages/{slug}`, `/arbitrages/{slug}/resultats`.
 - Onglet « les plus choisies dans les arbitrages » alimenté par `Rankings` (part des réponses retenant la mesure).
 
+## Lot 4, phase A : signalement, file de modération, journal public
+
+| Table | Rôle |
+| --- | --- |
+| `reports` | Signalement d'une proposition ou d'un argument (relation morphique `target`), motif de la charte, précision facultative (300 caractères), statut ouvert / traité, lien vers l'entrée du journal qui l'a clos. Un seul par compte et par contenu (index unique) |
+| `moderation_log` | Journal public, **en ajout seul** : type et identifiant de la cible, action, motif, identifiant interne de l'acteur (jamais affiché) et son rôle, `details` JSON limité à des identifiants. Aucune clé étrangère pour que la suppression d'un compte ou d'un contenu (lot 5) ne touche jamais une entrée. Déclencheurs PostgreSQL `BEFORE UPDATE OR DELETE` et `BEFORE TRUNCATE` levant une exception ; le modèle `ModerationLogEntry` refuse aussi `save()` sur une entrée existante et `delete()` |
+| `proposals`, `arguments` (ajouts) | `hidden_motive` ; statut `rewrite_requested` pour les propositions, avec `rewrite_allowed_until` |
+
+- Motifs (`ReportMotive`) : liste fermée de la charte avec gravité (illégal 3 ; attaque personnelle, désinformation, campagne coordonnée 2 ; hors sujet, doublon, spam 1). Seul « contenu illégal » masque immédiatement (`auto_hide`, acteur `system`, journalisé) ; les autres laissent le contenu visible jusqu'à la décision.
+- `App\Services\ReportService` : seul point de création d'un signalement (capacité `report` : participant vérifié, pas l'auteur, contenu publié ; unicité ; plafond `caps.reports_per_day`).
+- `App\Services\ModerationService` : conserver (rétablit un contenu masqué en attente), masquer avec motif (un doublon référence la fiche conservée dans `details`), demander une reformulation (propositions seulement). Chaque action écrit l'entrée du journal et clôt les signalements ouverts dans la même transaction. `rewriteReceived()` est appelé par `ProposalService::update` quand l'auteur a reformulé : une seule modification de fond malgré le verrou, puis republication immédiate.
+- `App\Services\ModerationQueue` : un dossier par contenu, trié par gravité du motif le plus grave puis par ancienneté ; contexte de l'auteur pseudonymisé (ancienneté du compte, décisions antérieures) ; historique agrégé du signaleur (émis, traités, retenus) sans jamais révéler son identité.
+- Affichage : une proposition masquée est remplacée par un bandeau public avec le motif et le lien vers l'entrée du journal (ni titre, ni redirection canonique pour un contenu illégal) ; auteur et modérateurs voient le contenu complet avec le bandeau. Un argument masqué devient une ligne « Argument masqué par la modération ». Les contenus masqués sortent déjà des classements, du vote rapide, de la recherche et des doublons (`published()`).
+- Routes : `/signaler/{proposition|argument}/{id}` (formulaire sans JavaScript), `/moderation` et `/moderation/dossiers/{type}/{id}` (capacité `moderate`, second facteur exigé), `/journal-de-moderation` (public, filtrable), `/charte-de-moderation`, `/comment-fonctionne-le-classement`.
+- Journal public : date, type de contenu, action, motif, rôle de l'acteur ; jamais de pseudonyme de modérateur ; le titre d'une fiche masquée pour un motif ordinaire est montré, rien pour un contenu illégal.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |
@@ -132,3 +148,7 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Pas de brouillon de proposition | Publication immédiate puis correction, historique public |
 | 2026-10-08 | `multilingual-e5-small` (384 dim.) téléchargé au build, exécution hors ligne | Empreinte mémoire ≈ 500 Mo ; aucun texte ne sort du réseau privé ; `embedding_version` permet un recalcul si le modèle change |
 | 2026-10-08 | Seuil de doublon 0,89 | Calibré sur le modèle : évite de signaler deux mesures différentes d'un même domaine |
+| 2026-10-08 | Journal de modération sans clé étrangère, immuable par déclencheur | Une suppression de compte ou de contenu ne doit jamais modifier ni effacer une entrée |
+| 2026-10-08 | Masquage immédiat dès le premier signalement « contenu illégal » | Imposé par le cahier des charges ; garde-fous : plafond de signalements, historique du signaleur, rétablissement par « conserver » |
+| 2026-10-08 | Formulaires de signalement et de modération en Blade sans Livewire | Pas de JavaScript nécessaire, CSP simple, testable en HTTP |
+| 2026-10-08 | Reformulation : fiche invisible, une modification de fond, republication sans validation | Décision du 8 octobre ; le modérateur peut remasquer |

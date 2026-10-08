@@ -15,7 +15,10 @@
             <li><strong>Les plus choisies dans les arbitrages</strong> : la part des participants qui retiennent la mesure quand ils composent une combinaison sous contrainte.</li>
             <li><strong>Les plus consensuelles</strong> : en V2, un classement par familles de votants, inspiré de Pol.is, dont l'algorithme sera publié ici avec un lien vers le code.</li>
         </ul>
-        <p class="mt-3 text-ink-700">Les définitions exactes sont publiées dans le dépôt du code (<code>docs/classement.md</code>).</p>
+        <p class="mt-3 text-ink-700">Chaque onglet est expliqué en détail sur la page <a href="{{ route('ranking-explained') }}" class="underline">Comment fonctionne le classement</a>, avec un lien vers le code.</p>
+
+        <h2 class="mt-8 text-xl font-semibold">Modération transparente</h2>
+        <p class="mt-3 text-ink-700">Tout participant peut signaler un contenu pour l'un des motifs de la <a href="{{ route('charter') }}" class="underline">charte de modération</a>. Chaque décision est motivée, inscrite dans un <a href="{{ route('moderation-log.index') }}" class="underline">journal public</a> que personne ne peut modifier, et contestable par l'auteur devant le comité éditorial.</p>
 
         <h2 class="mt-8 text-xl font-semibold">Ce qui est déjà garanti</h2>
         <ul class="mt-3 list-disc space-y-2 pl-5 text-ink-700">

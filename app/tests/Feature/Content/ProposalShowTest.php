@@ -35,12 +35,12 @@ class ProposalShowTest extends TestCase
         $this->get("/propositions/{$proposal->id}")->assertRedirect("/propositions/{$proposal->id}/creer-mille-lits");
     }
 
-    public function test_une_proposition_masquee_est_invisible_du_public_mais_pas_des_moderateurs(): void
+    public function test_une_proposition_masquee_est_remplacee_par_un_bandeau_pour_le_public_mais_pas_pour_les_moderateurs(): void
     {
         $proposal = Proposal::factory()->create(['status' => ProposalStatus::Hidden]);
 
-        $this->get($proposal->url())->assertNotFound();
-        $this->actingAs(User::factory()->role(Role::Moderator)->withTwoFactor()->create())->get($proposal->url())->assertOk();
+        $this->get($proposal->url())->assertOk()->assertSee('Contenu masqué')->assertDontSee($proposal->measure);
+        $this->actingAs(User::factory()->role(Role::Moderator)->withTwoFactor()->create())->get($proposal->url())->assertOk()->assertSee($proposal->measure);
     }
 
     public function test_l_historique_des_modifications_est_complet_et_public(): void

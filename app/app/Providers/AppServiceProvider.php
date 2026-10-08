@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Auth\UserProvider;
 use App\Enums\Role;
+use App\Models\Argument;
+use App\Models\Proposal;
 use App\Models\User;
+use App\Policies\ReportPolicy;
 use App\Policies\VotePolicy;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -27,8 +31,12 @@ class AppServiceProvider extends ServiceProvider
 
         $this->defineGates();
 
+        // Types de contenu modérables, tels qu'écrits dans `reports` et dans le journal public.
+        Relation::enforceMorphMap(['proposal' => Proposal::class, 'argument' => Argument::class]);
+
         // Le vote porte sur une proposition sans être un modèle à part entière : Gate explicite.
         Gate::define('vote', [VotePolicy::class, 'vote']);
+        Gate::define('report', [ReportPolicy::class, 'report']);
     }
 
     /** Une Gate par capacité ; chaque rôle n'a que celles que lui donne le cahier des charges. */

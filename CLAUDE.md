@@ -72,6 +72,15 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Arbitrages** : toujours par `App\Services\TradeoffService` (réponse, ajout de mesure, statut, suggestion). Une mesure sans `impact`, `uncertainty` et `source_url` est refusée.
 - **Files** : les jobs sont `ShouldQueue` ; en développement, le service `worker` les traite. Dans les tests, `QUEUE_CONNECTION=sync`.
 
+## Modération (lot 4)
+
+- **Signalements** : toujours par `App\Services\ReportService::report()` ; **actions** : toujours par `App\Services\ModerationService` (conserver, masquer, demander une reformulation). Jamais de changement de `status` ou de `hidden_motive` à la main : c'est le service qui écrit l'entrée du journal dans la même transaction.
+- **Journal** : table `moderation_log` en ajout seul, protégée par déclencheur PostgreSQL ; le modèle `ModerationLogEntry` refuse `update`/`delete`. Aucune clé étrangère, aucun texte dans `details`, jamais de pseudonyme de modérateur affiché (seulement `actor_role`).
+- **Motifs** : liste fermée dans `App\Enums\ReportMotive` (gravité, masquage immédiat pour « illégal »). Ajouter un motif = modifier l'énumération, la contrainte CHECK et la charte.
+- **Affichage** : un contenu non publié passe par `proposals.hidden` (bandeau) ou une ligne « Argument masqué » ; les requêtes publiques filtrent avec `published()`.
+- **Tests** : dans Docker, `APP_ENV=local` est exporté par Compose ; `phpunit.xml` force `APP_ENV=testing` via `<env>` et `<server>`. Les simulations HTTP du service d'embeddings utilisent le motif `*/embed`, valable sur l'hôte comme dans le conteneur. Une erreur PostgreSQL attendue dans un test doit être isolée par `DB::beginTransaction()` / `rollBack()` (point de sauvegarde), sinon la transaction du test est avortée.
+- **Blade** : une directive inline doit être précédée d'un espace (`modération @if (...)`) ; collée à un mot (`modération@if`), elle n'est pas compilée.
+
 ## Conventions
 
 - Interface en **français**, chaînes externalisées dans `app/lang/fr/`.

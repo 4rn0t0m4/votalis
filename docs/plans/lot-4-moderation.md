@@ -1,6 +1,6 @@
 # Plan du lot 4 — Modération
 
-Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phases A et B réalisées, phase C en cours**.
+Statut : **réalisé le 8 octobre 2026, en attente de la pull request** (plan validé le 8 octobre 2026, « feu vert pour tes reco »).
 Référence : cahier des charges, sections 3 (rôles), 4.8 (signalement), 6 (modération et transparence), 7 (intégrité), 10 (modèle de données), 13 et 14. Branche : `lot-4-moderation`.
 
 ## 1. Objectif et critères d'acceptation
@@ -105,7 +105,25 @@ Livré : signalement (formulaire dédié sans JavaScript), masquage immédiat su
 
 Livré : contestation (une par décision, 14 jours, formulaire sur le compte), arbitrage par le comité avec refus serveur et HTTP de juger sa propre décision (D2), rétablissement du contenu ou levée de la suspension en cas d'annulation, motivation visible de l'auteur, e-mail minimal, suspension de compte par le comité depuis le dossier, Gate `participate` bloquant les comptes suspendus. Suite : 187 tests, 881 assertions.
 
-## 10. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+## 10. Recette du 8 octobre 2026
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| D1 | Entrée du journal ni modifiable ni supprimable, même en base | `ModerationLogTest` : `UPDATE`, `DELETE` et `TRUNCATE … CASCADE` en SQL brut refusés par le déclencheur ; le modèle refuse `save()` et `delete()` |
+| D2 | Un modérateur ne traite pas la contestation de sa propre décision | `AppealTest` : refus par `AppealService::decide` et par la route, même avec le rôle comité ; un autre membre tranche |
+| D3 | Compte vérifié, un signalement par contenu, plafond serveur | `ReportTest` : visiteur, non vérifié et administrateur refusés ; doublon refusé ; plafond réglé à 2 refusé |
+| D4 | Visible jusqu'à décision sauf « illégal », masqué immédiatement et exclu des listes | `ReportTest` : spam visible ; illégal masqué, journalisé `auto_hide`, absent du thème, du vote rapide et de l'index |
+| D5 | Chaque action journalisée, sans contenu illégal, pseudonyme, e-mail ni IP | `ModerationLogTest`, `ModerationQueueTest`, `SuspensionTest` : assertions négatives sur le journal public |
+| D6 | Un appel par décision, dans le délai ; annulation = rétablissement | `AppealTest`, `SuspensionTest` : second appel et appel hors délai refusés ; contenu republié ; suspension levée |
+| D7 | Signaux inactifs sans seuil, jamais appliqués, visibles de la modération et de l'administrateur (lecture) | `IntegrityScanTest` : aucun signal sans seuil ; cinq détecteurs testés ; contenus, comptes et journal intacts ; administrateur en lecture seule |
+| D8 | Rapport en agrégats seulement | `TransparencyReportTest` : aucun pseudonyme, e-mail, titre ni identifiant dans le JSON |
+| D9 | Charte, journal, classement et transparence publics | `PublicPagesTest`, `ModerationLogTest`, `TransparencyReportTest` : réponses 200 sans connexion |
+
+Suite complète : 196 tests, 942 assertions, PHPStan niveau 8, Pint. Pile Docker migrée, pages publiques vérifiées en HTTP, planificateur listé (`schedule:list`).
+
+Écarts par rapport au plan : formulaires en Blade plutôt qu'en Livewire ; reformulation réservée aux propositions ; les contenus presque identiques ne sont détectés que pour les propositions (les arguments n'ont pas de vecteur) ; `docs/incidents.md` renvoie vers les portails officiels sans adresse nominative.
+
+## 11. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
 
 | Question | Décision |
 | --- | --- |
@@ -117,7 +135,7 @@ Livré : contestation (une par décision, 14 jours, formulaire sur le compte), a
 | Q6 Doublons | Masquage avec lien vers la fiche conservée, votes non transférés |
 | Q7 Administrateur | Lecture seule des signaux |
 
-## 11. Questions posées à la validation
+## 12. Questions posées à la validation
 
 - **Q1 — Masquage immédiat sur « contenu illégal ».** Le cahier des charges l'impose dès le premier signalement. Un compte malveillant peut donc faire disparaître n'importe quelle fiche le temps d'une décision. Je propose de l'appliquer tel quel, avec deux garde-fous : plafond de signalements par jour (10 par défaut, 5 pour un compte de moins de 7 jours) et historique du signaleur visible des modérateurs (part de signalements retenus). Convient-il, ou faut-il exiger deux signalements « illégal » distincts avant masquage ?
 - **Q2 — Suspension de compte.** Le rapport de transparence doit compter les « comptes suspendus », mais les actions listées en 6 ne la mentionnent pas. Je propose de la réserver au comité éditorial, journalisée et contestable. D'accord, ou reporter la suspension au lot 5 ?

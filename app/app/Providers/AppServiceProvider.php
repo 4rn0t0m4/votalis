@@ -48,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
             Gate::define($ability, fn (User $user): bool => in_array($ability, $user->role->abilities(), true));
         }
 
+        // Signaux d'intégrité : modération et comité, plus l'administrateur technique en lecture seule (CDC section 3).
+        Gate::define('view-integrity-signals', fn (User $user): bool => $user->can('moderate') || $user->can('manage-platform'));
+
         // Un compte suspendu lit et conteste, mais ne contribue plus (CDC section 6).
         Gate::define('participate', fn (User $user): bool => in_array('participate', $user->role->abilities(), true) && ! $user->isSuspended());
     }

@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Seuil d'intégrité lu depuis l'environnement : absent OU vide (comme dans .env.example) = détecteur désactivé.
+ */
+if (! function_exists('votalis_threshold')) {
+    function votalis_threshold(string $key, string $type): int|float|null
+    {
+        $value = env($key);
+
+        if ($value === null || $value === '' || $value === false) {
+            return null;
+        }
+
+        return $type === 'int' ? (int) $value : (float) $value;
+    }
+}
+
 return [
 
     /*
@@ -118,19 +134,19 @@ return [
     */
     'integrity' => [
         // Inscriptions sur 24 h au-delà desquelles un signal est levé.
-        'registration_spike' => env('INTEGRITY_REGISTRATION_SPIKE') !== null ? (int) env('INTEGRITY_REGISTRATION_SPIKE') : null,
+        'registration_spike' => votalis_threshold('INTEGRITY_REGISTRATION_SPIKE', 'int'),
         // Votes sur une même proposition en 24 h.
-        'vote_spike' => env('INTEGRITY_VOTE_SPIKE') !== null ? (int) env('INTEGRITY_VOTE_SPIKE') : null,
+        'vote_spike' => votalis_threshold('INTEGRITY_VOTE_SPIKE', 'int'),
         // Comptes de moins de `identical_voting_account_days` jours partageant au moins
         // `identical_voting_min_shared` votes strictement identiques, à partir de `identical_voting_min_accounts` comptes.
-        'identical_voting_min_shared' => env('INTEGRITY_IDENTICAL_VOTING_MIN_SHARED') !== null ? (int) env('INTEGRITY_IDENTICAL_VOTING_MIN_SHARED') : null,
+        'identical_voting_min_shared' => votalis_threshold('INTEGRITY_IDENTICAL_VOTING_MIN_SHARED', 'int'),
         'identical_voting_min_accounts' => (int) env('INTEGRITY_IDENTICAL_VOTING_MIN_ACCOUNTS', 2),
         'identical_voting_account_days' => (int) env('INTEGRITY_IDENTICAL_VOTING_ACCOUNT_DAYS', 30),
         // Similarité cosinus minimale entre deux propositions de comptes différents déposées en 24 h.
-        'duplicate_content_similarity' => env('INTEGRITY_DUPLICATE_CONTENT_SIMILARITY') !== null ? (float) env('INTEGRITY_DUPLICATE_CONTENT_SIMILARITY') : null,
+        'duplicate_content_similarity' => votalis_threshold('INTEGRITY_DUPLICATE_CONTENT_SIMILARITY', 'float'),
         // Part des votes des 24 h émis entre `night_start` et `night_end` (heures) au-delà de laquelle un signal est levé,
         // à partir de `night_min_votes` votes.
-        'night_share' => env('INTEGRITY_NIGHT_SHARE') !== null ? (float) env('INTEGRITY_NIGHT_SHARE') : null,
+        'night_share' => votalis_threshold('INTEGRITY_NIGHT_SHARE', 'float'),
         'night_min_votes' => (int) env('INTEGRITY_NIGHT_MIN_VOTES', 50),
         'night_start' => (int) env('INTEGRITY_NIGHT_START', 2),
         'night_end' => (int) env('INTEGRITY_NIGHT_END', 6),

@@ -1,4 +1,4 @@
-fastapi==0.115.*
-uvicorn[standard]==0.32.*
+fastapi==0.143.*
+uvicorn[standard]>=0.34,<1
 pydantic==2.*
-sentence-transformers==3.*
+sentence-transformers==6.*

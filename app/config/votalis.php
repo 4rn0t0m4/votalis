@@ -161,6 +161,13 @@ return [
     ],
 
     /*
+    | Cache des pages publiques pour les visiteurs non connectés, en secondes (0 : désactivé).
+    */
+    'cache' => [
+        'public_seconds' => (int) env('PUBLIC_CACHE_SECONDS', 60),
+    ],
+
+    /*
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),

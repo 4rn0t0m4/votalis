@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CachePublicPage;
+use App\Http\Middleware\EnforceReadOnly;
 use App\Http\Middleware\EnsureTwoFactorForPrivilegedRoles;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\ThrottleRegistration;
@@ -21,7 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureTwoFactorForPrivilegedRoles::class,
             ThrottleRegistration::class,
             TrackLastSeen::class,
+            EnforceReadOnly::class,
         ]);
+
+        $middleware->alias(['cache.public' => CachePublicPage::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

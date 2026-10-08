@@ -32,6 +32,24 @@ steps:
       - cp .env.example .env && php artisan key:generate --force
       - php artisan votalis:hash-key
 
+  # Audit des dépendances (CDC 12) : bloquant sur une faille haute ou critique.
+  audit-composer:
+    image: *php_image
+    depends_on: [composer]
+    commands:
+      - cd app && composer audit --no-interaction
+
+  audit-npm:
+    image: node:22-alpine
+    commands:
+      - cd app && npm ci --no-audit --no-fund && npm audit --omit=dev --audit-level=high
+
+  audit-python:
+    image: python:3.12-slim
+    commands:
+      - pip install -q pip-audit
+      - pip-audit -r consensus/requirements.txt
+
   pint:
     image: *php_image
     depends_on: [composer]

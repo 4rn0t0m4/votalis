@@ -1,6 +1,6 @@
 # Plan du lot 5 — Ouverture
 
-Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phases A et B réalisées, phase C en cours**.
+Statut : **réalisé le 8 octobre 2026, en attente de la pull request** (plan validé le 8 octobre 2026, « feu vert pour tes reco »).
 Référence : cahier des charges, sections 7 (sécurité, résilience), 8 (RGPD), 11 (exigences non fonctionnelles), 12 (hébergement), 13 et 14. Branche : `lot-5-ouverture`.
 
 ## 1. Objectif et critères d'acceptation
@@ -88,7 +88,25 @@ Livré : export JSON (E3), suppression en libre-service avec mot de passe (E4), 
 
 Livré : audit automatisé pa11y/axe sur les cinq pages (5/5 sans erreur après correction de la pagination), grille RGAA 4.1 (`docs/accessibilite.md`), déclaration d'accessibilité `/accessibilite`, cibles tactiles ≥ 44 px pour le vote et le vote rapide, test automatisé du poids des pages (E7, toutes sous 300 Ko). L'audit RGAA par un tiers reste à commander (Q6). Suite : 205 tests.
 
-## 9. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+## 9. Point d'étape phase C et recette (8 octobre 2026)
+
+Livré : audit des dépendances en CI, auto-évaluation ASVS niveau 2 et dossier d'audit, mode lecture seule (page `/admin`, commande, middleware et services), cache des pages publiques invalidé à l'écriture, compose de production et image dédiée, guide d'exploitation, scripts de sauvegarde chiffrée et de restauration, scénarios k6 et mesure serveur des votes. Bug corrigé au passage : les classements mis en cache renvoyaient une erreur 500 avec Redis (Laravel 13 ne désérialise plus d'objets) ; le cache ne contient plus que des identifiants, avec un test de non-régression.
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| E1 | Audit externe sans faille critique ni élevée | **À commander** : dossier prêt dans `docs/securite.md` ; auto-évaluation ASVS sans point rouge ; `make audit-deps` : Composer et npm sans faille ; pip-audit signalait starlette 0.46 et transformers 4.57, corrigé par la mise à jour de `consensus/requirements.txt` (FastAPI 0.143, sentence-transformers 6), image reconstruite, test d'intégration C2 toujours vert |
+| E2 | Audit RGAA AA sur 5 pages | Automatisé : 5/5 sans erreur (`make a11y`) ; grille manuelle `docs/accessibilite.md` ; déclaration `/accessibilite`. Audit tiers **à commander** |
+| E3 | Export complet sans donnée de tiers | `DataExportTest` |
+| E4 | Suppression : votes effacés, contenus conservés sans auteur, journal intact | `AccountDeletionTest` |
+| E5 | Comptes inactifs prévenus puis supprimés | `InactivityPurgeTest` |
+| E6 | Conservation | Aucune IP ni journal de connexion en base ; `auth:clear-resets` planifié ; sessions Redis à expiration |
+| E7 | Pages < 300 Ko, vote rapide d'une main | `PageWeightTest` ; cibles 44 px, vérification mobile manuelle |
+| E8 | Charge : pages p95 < 1 s, vote < 300 ms, 500 votes/min | k6 lecture publique 50 VU : p95 34 ms, 0 erreur ; vote rapide 8 VU : p95 103 ms ; 500 votes serveur : p95 2,7 ms (pile Docker locale, 5 processus PHP-FPM) |
+| E9 | Lecture seule ; sauvegarde et restauration | `ReadOnlyModeTest` ; `make backup-test` : sauvegarde chiffrée 348 Ko, restauration dans `votalis_restore_test` avec comptages |
+
+Suite complète : 212 tests, 1 096 assertions, PHPStan niveau 8, Pint.
+
+## 10. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
 
 | Question | Décision |
 | --- | --- |
@@ -101,7 +119,7 @@ Livré : audit automatisé pa11y/axe sur les cinq pages (5/5 sans erreur après 
 | Q7 Responsable de traitement | Champs à compléter dans les documents |
 | Q8 Lecture seule | Page `/admin` (administrateur technique) + commande `votalis:read-only` |
 
-## 10. Questions posées à la validation
+## 11. Questions posées à la validation
 
 - **Q1 — Hébergeur et e-mail.** Le guide de déploiement peut rester générique (OVHcloud ou Scaleway, fournisseur d'e-mail européen comme Brevo). Avez-vous déjà un choix, ou je documente les deux options avec leurs points de vigilance ?
 - **Q2 — Matomo.** Le cahier des charges prévoit une mesure d'audience Matomo auto-hébergée en mode exempté. Je propose de la reporter au déploiement (service optionnel dans le compose de production, aucun script de mesure dans le MVP tant qu'elle n'est pas installée). D'accord ?

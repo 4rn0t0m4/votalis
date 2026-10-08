@@ -17,7 +17,11 @@
         <nav class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3" aria-label="Navigation principale">
             <a href="{{ route('home') }}" class="font-semibold text-ink-900">{{ config('app.name') }}</a>
             <ul class="flex items-center gap-4 text-sm">
+                <li><a href="{{ route('themes.index') }}" class="hover:underline">Thèmes</a></li>
                 <li><a href="{{ route('how-it-works') }}" class="hover:underline">Comment ça marche</a></li>
+                @can('manage-themes')
+                    <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Comité</a></li>
+                @endcan
                 @auth
                     <li><a href="{{ route('account.show') }}" class="hover:underline">Mon compte</a></li>
                     <li>

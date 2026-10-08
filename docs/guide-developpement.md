@@ -1,6 +1,6 @@
-# CLAUDE.md
+# Guide de développement
 
-Plateforme web non partisane de débat citoyen : des mesures concrètes que chacun peut consulter, voter, arbitrer, argumenter et proposer. Le cahier des charges fait foi ; ce fichier en reprend les consignes de travail (section 14) et les repères du dépôt.
+Plateforme web non partisane de débat citoyen : des mesures concrètes que chacun peut consulter, voter, arbitrer, argumenter et proposer. Le cahier des charges fait foi ; ce guide en reprend les consignes de travail (section 14) et les repères du dépôt.
 
 ## Consignes de travail (cahier des charges, section 14)
 
@@ -10,7 +10,7 @@ Plateforme web non partisane de débat citoyen : des mesures concrètes que chac
 - Ne jamais ajouter de dépendance ni de service tiers **hébergé hors d'Europe** sans le signaler et demander validation.
 - Ne jamais écrire de **secret, de seuil anti-fraude ou de valeur de production** dans le dépôt : `.env.example` et une configuration privée uniquement.
 - Toute **règle métier** (plafonds, droits, fusion, modération) est appliquée **côté serveur** et couverte par un test.
-- Tenir à jour `docs/architecture.md`, `docs/classement.md` et ce fichier.
+- Tenir à jour `docs/architecture.md`, `docs/classement.md` et ce guide.
 - En cas d'ambiguïté dans le cahier des charges, **poser la question** plutôt que trancher.
 
 ## Principes opposables à toute décision technique

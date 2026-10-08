@@ -50,7 +50,7 @@ votalis/
 │   ├── classement.md    Créé au lot 1 avec le principe, détaillé en V2
 │   └── plans/           Un plan par lot
 ├── .woodpecker/         Pipelines CI
-├── CLAUDE.md            Consignes de la section 14
+├── docs/guide-developpement.md  Consignes de la section 14
 ├── LICENSE              AGPL v3
 ├── CONTRIBUTING.md
 ├── SECURITY.md          Adresse de signalement des failles, délai de réponse
@@ -137,7 +137,7 @@ Tous écrits avec ou avant le code, exécutés sur PostgreSQL et non sur SQLite.
 
 ## 9. Ordre de réalisation
 
-1. Monorepo, licence, CLAUDE.md, SECURITY.md, CONTRIBUTING.md, `.gitleaks.toml`, hooks.
+1. Monorepo, licence, docs/guide-developpement.md, SECURITY.md, CONTRIBUTING.md, `.gitleaks.toml`, hooks.
 2. Docker Compose, Dockerfile, Makefile, Laravel 13 installé dans `app/`, première migration avec `pgvector` et `pgcrypto`.
 3. Fortify : inscription, connexion, vérification e-mail, Argon2id, e-mail chiffré et haché, domaines jetables.
 4. TOTP et WebAuthn, middleware « second facteur obligatoire », rôles, gates, commande `role:assign`.

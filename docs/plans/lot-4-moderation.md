@@ -95,7 +95,7 @@ Gravité des motifs, pour le tri de la file : contenu illégal (3) ; attaque per
 
 1. Phase A : migrations (reports, moderation_log et déclencheur, statuts), `ReportService`, `ModerationService`, bouton, file, actions, journal, charte, page du classement. Point d'étape.
 2. Phase B : appels, page compte, notifications, suspension. Point d'étape.
-3. Phase C : signaux, planification, rapport, page transparence, `docs/incidents.md`, mise à jour de `docs/architecture.md`, `docs/classement.md`, `CLAUDE.md`. Recette D1 à D9, pull request.
+3. Phase C : signaux, planification, rapport, page transparence, `docs/incidents.md`, mise à jour de `docs/architecture.md`, `docs/classement.md`, `docs/guide-developpement.md`. Recette D1 à D9, pull request.
 
 ## 8. Point d'étape phase A (8 octobre 2026)
 

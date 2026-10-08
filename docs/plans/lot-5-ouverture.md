@@ -78,7 +78,7 @@ Reporté : vérification téléphonique, fusions, consensus (V2) ; export open d
 
 1. Phase A : export, suppression, inactivité, pages légales, documents RGPD. Point d'étape.
 2. Phase B : audit d'accessibilité, corrections, déclaration, poids des pages. Point d'étape.
-3. Phase C : audit des dépendances en CI, ASVS, lecture seule, cache, sauvegardes, compose de production, charge. Recette E1 à E9, mise à jour de `docs/architecture.md`, `CLAUDE.md`, `README.md`, pull request.
+3. Phase C : audit des dépendances en CI, ASVS, lecture seule, cache, sauvegardes, compose de production, charge. Recette E1 à E9, mise à jour de `docs/architecture.md`, `docs/guide-developpement.md`, `README.md`, pull request.
 
 ## 7. Point d'étape phase A (8 octobre 2026)
 

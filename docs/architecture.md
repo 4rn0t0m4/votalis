@@ -136,6 +136,18 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - `App\Notifications\ModerationNotice` : e-mail minimal (file d'attente) à chaque masquage, demande de reformulation, suspension et décision d'appel ; ni contenu, ni motif, ni pseudonyme, seulement un lien vers `/mon-compte/moderation`.
 - Pages : `/mon-compte/moderation` (décisions me concernant, contestation, issue et motivation du comité), `/mon-compte/moderation/contester/{entrée}`, `/moderation/contestations` et `/moderation/contestations/{id}` (comité ; une contestation de sa propre décision est affichée sans formulaire), suspension depuis le dossier de modération.
 
+## Lot 4, phase C : signaux d'intégrité et transparence
+
+| Table | Rôle |
+| --- | --- |
+| `integrity_signals` | Signal calculé par `integrity:scan` : type, gravité (1 à 3), `targets` (identifiants internes seulement), `details` (comptages), statut nouveau / examiné / confirmé / écarté, examinateur, date de fenêtre. Index unique (type, jour, cibles) : un second passage ne duplique rien |
+| `transparency_reports` | Rapport d'une période : `data` JSON d'agrégats, public |
+
+- `App\Services\IntegrityScanner` : cinq détecteurs sur les 24 dernières heures, chacun **inactif tant que son seuil n'est pas configuré** (`config/votalis.php`, clés `integrity.*`, lues depuis l'environnement sans valeur par défaut dans le dépôt) : pic d'inscriptions, pic de votes sur une fiche, comptes récents votant de manière identique (paires regroupées en composantes), propositions presque identiques de comptes différents (similarité pgvector sur `embedding`), activité nocturne. Le service n'écrit que dans `integrity_signals` ; aucun contenu ni compte n'est touché.
+- Commandes et planification (`routes/console.php`) : `integrity:scan` chaque nuit à 4 h 30, `transparency:report` le premier jour de chaque trimestre (ou `--from` / `--to` pour une période). En production, le planificateur Laravel doit tourner (`schedule:run` chaque minute, ou `schedule:work`).
+- `App\Services\TransparencyReporter` : signalements par motif, décisions par action et motif, contestations déposées / confirmées / annulées, comptes suspendus, signaux levés et opérations coordonnées confirmées. Jamais d'identifiant ni de texte.
+- Pages : `/moderation/signaux` (Gate `view-integrity-signals` : modération, comité et administrateur technique ; seule la modération change le statut), `/transparence` (public). `docs/incidents.md` : procédure VIGINUM, ANSSI, Cybermalveillance.gouv.fr et CNIL.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |
@@ -164,3 +176,5 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Masquage immédiat dès le premier signalement « contenu illégal » | Imposé par le cahier des charges ; garde-fous : plafond de signalements, historique du signaleur, rétablissement par « conserver » |
 | 2026-10-08 | Formulaires de signalement et de modération en Blade sans Livewire | Pas de JavaScript nécessaire, CSP simple, testable en HTTP |
 | 2026-10-08 | Reformulation : fiche invisible, une modification de fond, republication sans validation | Décision du 8 octobre ; le modérateur peut remasquer |
+| 2026-10-08 | Seuils d'intégrité sans valeur par défaut : un seuil absent désactive le détecteur | Le cahier des charges interdit tout seuil anti-fraude dans le dépôt |
+| 2026-10-08 | Signaux jamais appliqués automatiquement, statut changé seulement par la modération | Toute mesure passe par une décision journalisée et contestable |

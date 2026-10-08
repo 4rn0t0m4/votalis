@@ -7,18 +7,21 @@ use App\Http\Controllers\Committee\TradeoffController as CommitteeTradeoffContro
 use App\Http\Controllers\Moderation\AppealController;
 use App\Http\Controllers\Moderation\CaseController;
 use App\Http\Controllers\Moderation\QueueController;
+use App\Http\Controllers\Moderation\SignalController;
 use App\Http\Controllers\ModerationLogController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\TradeoffController;
+use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
 Route::view('/comment-ca-marche', 'pages.how-it-works')->name('how-it-works');
 Route::view('/comment-fonctionne-le-classement', 'pages.ranking')->name('ranking-explained');
 Route::view('/charte-de-moderation', 'pages.charter')->name('charter');
+Route::get('/transparence', [TransparencyController::class, 'index'])->name('transparency');
 
 // Journal public de modération : lecture libre.
 Route::get('/journal-de-moderation', [ModerationLogController::class, 'index'])->name('moderation-log.index');
@@ -35,6 +38,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/propositions/{proposal}/modifier', [ProposalController::class, 'edit'])->whereNumber('proposal')->name('proposals.edit');
     Route::get('/signaler/{type}/{id}', [ReportController::class, 'create'])->whereNumber('id')->name('reports.create');
     Route::post('/signaler/{type}/{id}', [ReportController::class, 'store'])->whereNumber('id')->name('reports.store');
+});
+
+// Signaux d'intégrité : modération, comité et administrateur technique (lecture seule pour ce dernier).
+Route::middleware(['auth', 'verified', 'can:view-integrity-signals'])->prefix('moderation')->name('moderation.')->group(function () {
+    Route::get('/signaux', [SignalController::class, 'index'])->name('signals.index');
+    Route::post('/signaux/{signal}', [SignalController::class, 'update'])->name('signals.update');
 });
 
 // Espace de modération (modérateurs et comité éditorial, second facteur exigé par le middleware global).

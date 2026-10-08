@@ -27,6 +27,9 @@
                 @can('arbitrate-appeals')
                     <li><a href="{{ route('moderation.appeals.index') }}" class="hover:underline">Contestations</a></li>
                 @endcan
+                @can('view-integrity-signals')
+                    <li><a href="{{ route('moderation.signals.index') }}" class="hover:underline">Signaux</a></li>
+                @endcan
                 @can('manage-themes')
                     <li><a href="{{ route('committee.themes.index') }}" class="hover:underline">Thèmes (comité)</a></li>
                     <li><a href="{{ route('committee.tradeoffs.index') }}" class="hover:underline">Arbitrages (comité)</a></li>
@@ -62,6 +65,7 @@
                 <a href="{{ route('charter') }}" class="hover:underline">Charte de modération</a>
                 · <a href="{{ route('moderation-log.index') }}" class="hover:underline">Journal de modération</a>
                 · <a href="{{ route('ranking-explained') }}" class="hover:underline">Comment fonctionne le classement</a>
+                · <a href="{{ route('transparency') }}" class="hover:underline">Transparence</a>
             </p>
             <p>
                 <a href="{{ config('votalis.repository_url') }}" rel="noopener" class="hover:underline">Dépôt du code</a>

@@ -1,0 +1,66 @@
+# CI Woodpecker (Codeberg). Aucun secret n'est requis par ce pipeline.
+# Politique : les secrets Woodpecker, s'il y en a un jour, ne sont jamais exposés aux
+# événements pull_request (A1 du lot 1) ; ils sont limités aux événements push et tag sur main.
+
+when:
+  - event: [push, pull_request]
+
+variables:
+  - &php_image php:8.4-cli-alpine
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: votalis_test
+      POSTGRES_USER: votalis
+      POSTGRES_PASSWORD: ci-only-not-a-secret
+
+steps:
+  gitleaks:
+    image: zricethezav/gitleaks:latest
+    commands:
+      - gitleaks git --redact --config .gitleaks.toml --log-opts="--all" .
+
+  composer:
+    image: *php_image
+    commands:
+      - apk add --no-cache git unzip icu-dev postgresql-dev libzip-dev $PHPIZE_DEPS
+      - docker-php-ext-install -j$(nproc) pdo_pgsql pgsql intl zip bcmath pcntl
+      - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      - cd app && composer install --no-interaction --prefer-dist --no-progress
+      - cp .env.example .env && php artisan key:generate --force
+      - php artisan votalis:hash-key
+
+  pint:
+    image: *php_image
+    depends_on: [composer]
+    commands:
+      - cd app && ./vendor/bin/pint --test
+
+  phpstan:
+    image: *php_image
+    depends_on: [composer]
+    commands:
+      - cd app && ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+  assets:
+    image: node:22-alpine
+    depends_on: [composer]
+    commands:
+      - cd app && npm ci && npm run build
+
+  tests:
+    image: *php_image
+    depends_on: [composer, assets]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_DATABASE: votalis_test
+      DB_USERNAME: votalis
+      DB_PASSWORD: ci-only-not-a-secret
+    commands:
+      - apk add --no-cache icu-dev postgresql-dev libzip-dev $PHPIZE_DEPS
+      - docker-php-ext-install -j$(nproc) pdo_pgsql pgsql intl zip bcmath pcntl
+      - cd app && until php -r 'new PDO("pgsql:host=db;dbname=votalis_test", "votalis", "ci-only-not-a-secret");' 2>/dev/null; do sleep 2; done
+      - php artisan test --compact

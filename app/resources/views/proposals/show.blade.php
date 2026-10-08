@@ -46,7 +46,7 @@
         </header>
 
         <div class="mt-8 grid gap-5 lg:grid-cols-12">
-            <div class="flex flex-col gap-5 lg:col-span-7">
+            <div class="flex min-w-0 flex-col gap-5 lg:col-span-7">
                 <x-card as="section" aria-labelledby="probleme" class="rise">
                     <h2 id="probleme" class="eyebrow flex items-center gap-2 text-accent-700"><span class="size-3 rounded-full bg-accent-600" aria-hidden="true"></span>Problème visé</h2>
                     <p class="mt-3 text-lg leading-relaxed whitespace-pre-line">{{ $proposal->problem }}</p>
@@ -56,7 +56,7 @@
                     <p class="mt-3 text-lg leading-relaxed whitespace-pre-line">{{ $proposal->measure }}</p>
                 </x-card>
             </div>
-            <aside class="flex flex-col gap-5 lg:col-span-5">
+            <aside class="flex min-w-0 flex-col gap-5 lg:col-span-5">
                 <x-card tone="sand" as="section" aria-labelledby="cout" class="rise rise-2">
                     <h2 id="cout" class="eyebrow flex items-center gap-2 text-plum-700"><span class="size-3 rounded-full bg-plum-600" aria-hidden="true"></span>Coût ou impact estimé</h2>
                     <p class="mt-3 text-2xl leading-snug font-extrabold tracking-tight">{{ $proposal->cost_unknown ? 'Inconnu' : $proposal->cost_estimate }}</p>
@@ -70,7 +70,13 @@
                                 @if ($source->is_personal)
                                     <span>Proposition personnelle</span>
                                 @else
-                                    <a href="{{ $source->url }}" rel="noopener nofollow" class="link break-all">{{ $source->label ?? $source->url }}</a>
+                                    @php $host = preg_replace('/^www\./', '', (string) parse_url((string) $source->url, PHP_URL_HOST)); @endphp
+                                    <span class="block min-w-0 flex-1">
+                                        <a href="{{ $source->url }}" rel="noopener nofollow" class="link">{{ $source->label ?? $host }}</a>
+                                        @if ($source->label === null)
+                                            <span class="block truncate text-xs text-ink-700" title="{{ $source->url }}">{{ Str::limit((string) parse_url((string) $source->url, PHP_URL_PATH), 70) }}</span>
+                                        @endif
+                                    </span>
                                 @endif
                             </li>
                         @endforeach

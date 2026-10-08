@@ -5,7 +5,7 @@
             $ratio = $max > 0 ? min(1, $value / $max) : 0;
             $offset = (int) round($circumference * (1 - $ratio));
             return sprintf(
-                '<div class="relative size-24"><svg viewBox="0 0 80 80" class="size-24" role="img" aria-label="%s"><circle cx="40" cy="40" r="32" fill="none" stroke-width="10" class="stroke-ink-100"/><circle cx="40" cy="40" r="32" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="%d" stroke-dashoffset="%d" transform="rotate(-90 40 40)" class="%s transition-[stroke-dashoffset] duration-700"/></svg><span class="absolute inset-0 flex items-center justify-center text-2xl font-extrabold text-ink-900" aria-hidden="true">%d</span></div>',
+                '<svg viewBox="0 0 80 80" class="size-20" role="img" aria-label="%s"><circle cx="40" cy="40" r="32" fill="none" stroke-width="10" class="stroke-ink-100"/><circle cx="40" cy="40" r="32" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="%d" stroke-dashoffset="%d" transform="rotate(-90 40 40)" class="%s transition-[stroke-dashoffset] duration-700"/></svg><p class="mt-2 text-3xl leading-none font-extrabold tracking-tight text-ink-900" aria-hidden="true">%d</p>',
                 e($label), $circumference, $offset, $stroke, $value,
             );
         };

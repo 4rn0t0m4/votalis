@@ -1,6 +1,6 @@
 # Plan du lot 4 — Modération
 
-Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phase A réalisée, phase B en cours**.
+Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phases A et B réalisées, phase C en cours**.
 Référence : cahier des charges, sections 3 (rôles), 4.8 (signalement), 6 (modération et transparence), 7 (intégrité), 10 (modèle de données), 13 et 14. Branche : `lot-4-moderation`.
 
 ## 1. Objectif et critères d'acceptation
@@ -101,7 +101,11 @@ Gravité des motifs, pour le tri de la file : contenu illégal (3) ; attaque per
 
 Livré : signalement (formulaire dédié sans JavaScript), masquage immédiat sur « contenu illégal », file et dossiers de modération, actions conserver / masquer / reformulation, journal public immuable (déclencheur testé en UPDATE, DELETE, TRUNCATE), bandeaux de contenu masqué, charte et page du classement. Écarts par rapport au plan : formulaires en Blade plutôt qu'en Livewire (aucune interactivité nécessaire) ; la reformulation est réservée aux propositions, les arguments n'étant pas modifiables ; le tri de la file est calculé en PHP depuis l'énumération des motifs. Suite : 178 tests, 804 assertions, PHPStan niveau 8.
 
-## 9. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+## 9. Point d'étape phase B (8 octobre 2026)
+
+Livré : contestation (une par décision, 14 jours, formulaire sur le compte), arbitrage par le comité avec refus serveur et HTTP de juger sa propre décision (D2), rétablissement du contenu ou levée de la suspension en cas d'annulation, motivation visible de l'auteur, e-mail minimal, suspension de compte par le comité depuis le dossier, Gate `participate` bloquant les comptes suspendus. Suite : 187 tests, 881 assertions.
+
+## 10. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
 
 | Question | Décision |
 | --- | --- |
@@ -113,7 +117,7 @@ Livré : signalement (formulaire dédié sans JavaScript), masquage immédiat su
 | Q6 Doublons | Masquage avec lien vers la fiche conservée, votes non transférés |
 | Q7 Administrateur | Lecture seule des signaux |
 
-## 10. Questions posées à la validation
+## 11. Questions posées à la validation
 
 - **Q1 — Masquage immédiat sur « contenu illégal ».** Le cahier des charges l'impose dès le premier signalement. Un compte malveillant peut donc faire disparaître n'importe quelle fiche le temps d'une décision. Je propose de l'appliquer tel quel, avec deux garde-fous : plafond de signalements par jour (10 par défaut, 5 pour un compte de moins de 7 jours) et historique du signaleur visible des modérateurs (part de signalements retenus). Convient-il, ou faut-il exiger deux signalements « illégal » distincts avant masquage ?
 - **Q2 — Suspension de compte.** Le rapport de transparence doit compter les « comptes suspendus », mais les actions listées en 6 ne la mentionnent pas. Je propose de la réserver au comité éditorial, journalisée et contestable. D'accord, ou reporter la suspension au lot 5 ?

@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Models\Argument;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Policies\AppealPolicy;
 use App\Policies\ReportPolicy;
 use App\Policies\VotePolicy;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -32,11 +33,12 @@ class AppServiceProvider extends ServiceProvider
         $this->defineGates();
 
         // Types de contenu modérables, tels qu'écrits dans `reports` et dans le journal public.
-        Relation::enforceMorphMap(['proposal' => Proposal::class, 'argument' => Argument::class]);
+        Relation::enforceMorphMap(['proposal' => Proposal::class, 'argument' => Argument::class, 'user' => User::class]);
 
         // Le vote porte sur une proposition sans être un modèle à part entière : Gate explicite.
         Gate::define('vote', [VotePolicy::class, 'vote']);
         Gate::define('report', [ReportPolicy::class, 'report']);
+        Gate::define('appeal', [AppealPolicy::class, 'appeal']);
     }
 
     /** Une Gate par capacité ; chaque rôle n'a que celles que lui donne le cahier des charges. */
@@ -45,5 +47,8 @@ class AppServiceProvider extends ServiceProvider
         foreach (Role::allAbilities() as $ability) {
             Gate::define($ability, fn (User $user): bool => in_array($ability, $user->role->abilities(), true));
         }
+
+        // Un compte suspendu lit et conteste, mais ne contribue plus (CDC section 6).
+        Gate::define('participate', fn (User $user): bool => in_array('participate', $user->role->abilities(), true) && ! $user->isSuspended());
     }
 }

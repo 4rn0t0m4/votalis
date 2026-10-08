@@ -7,6 +7,7 @@ use App\Enums\ModerationAction;
 use App\Enums\ReportMotive;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use LogicException;
@@ -24,7 +25,8 @@ use LogicException;
  * @property ActorRole $actor_role
  * @property array<string, mixed>|null $details
  * @property Carbon $created_at
- * @property-read Proposal|Argument|null $target
+ * @property-read Proposal|Argument|User|null $target
+ * @property-read Appeal|null $appeal
  */
 #[Fillable(['target_type', 'target_id', 'action', 'motive', 'actor_id', 'actor_role', 'details'])]
 class ModerationLogEntry extends Model
@@ -53,6 +55,33 @@ class ModerationLogEntry extends Model
         return $this->morphTo();
     }
 
+    /** @return HasOne<Appeal, $this> */
+    public function appeal(): HasOne
+    {
+        return $this->hasOne(Appeal::class, 'log_entry_id');
+    }
+
+    /** Fin du délai de contestation. */
+    public function appealDeadline(): Carbon
+    {
+        return $this->created_at->copy()->addDays((int) config('votalis.moderation.appeal_days', 14));
+    }
+
+    public function isAppealableBy(User $user): bool
+    {
+        if (! $this->action->isAppealable() || $this->appealDeadline()->isPast()) {
+            return false;
+        }
+
+        if ($this->target_type === 'user') {
+            return $this->target_id === $user->id;
+        }
+
+        $target = $this->target;
+
+        return ($target instanceof Proposal || $target instanceof Argument) && $target->author_id === $user->id;
+    }
+
     public function save(array $options = []): bool
     {
         if ($this->exists) {
@@ -75,7 +104,11 @@ class ModerationLogEntry extends Model
 
     public function targetLabel(): string
     {
-        return $this->target_type === 'proposal' ? 'Proposition' : 'Argument';
+        return match ($this->target_type) {
+            'proposal' => 'Proposition',
+            'argument' => 'Argument',
+            default => 'Compte',
+        };
     }
 
     public function url(): string

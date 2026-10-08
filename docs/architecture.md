@@ -124,6 +124,18 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - Routes : `/signaler/{proposition|argument}/{id}` (formulaire sans JavaScript), `/moderation` et `/moderation/dossiers/{type}/{id}` (capacité `moderate`, second facteur exigé), `/journal-de-moderation` (public, filtrable), `/charte-de-moderation`, `/comment-fonctionne-le-classement`.
 - Journal public : date, type de contenu, action, motif, rôle de l'acteur ; jamais de pseudonyme de modérateur ; le titre d'une fiche masquée pour un motif ordinaire est montré, rien pour un contenu illégal.
 
+## Lot 4, phase B : contestation, information des auteurs, suspension
+
+| Table | Rôle |
+| --- | --- |
+| `appeals` | Une contestation par entrée du journal (`log_entry_id` unique) : auteur, texte (1 000 caractères), statut en attente / confirmée / annulée, arbitre (`decided_by`, identifiant interne), motivation visible de l'auteur (`decision_note`), entrée du journal portant l'issue |
+| `users` (ajouts) | `suspended_at`, `suspended_until` (null : sans terme). Le motif ne figure que dans le journal |
+
+- `App\Services\AppealService::file()` : capacité `appeal` (`AppealPolicy`) : auteur du contenu ou titulaire du compte suspendu, action contestable (masquage, reformulation, suspension), délai `moderation.appeal_days`, une seule fois. `decide()` : capacité `arbitrate-appeals` (comité) ; **refus si l'arbitre est l'auteur de la décision contestée** (critère D2, testé par le service et par la route) ; une annulation rétablit le contenu ou lève la suspension ; l'issue est journalisée (`appeal_confirmed` / `appeal_overturned`, `details.appealed_entry_id`) et l'auteur prévenu.
+- `App\Services\ModerationService::suspend()` : comité éditorial seulement, compte participant seulement, durée en jours ou sans terme, entrée `suspend` avec `target_type = user` (le journal affiche « Compte », jamais le pseudonyme). La Gate `participate` refuse un compte suspendu : votes, propositions, arguments, signalements et arbitrages sont bloqués d'un coup ; lecture et contestation restent possibles.
+- `App\Notifications\ModerationNotice` : e-mail minimal (file d'attente) à chaque masquage, demande de reformulation, suspension et décision d'appel ; ni contenu, ni motif, ni pseudonyme, seulement un lien vers `/mon-compte/moderation`.
+- Pages : `/mon-compte/moderation` (décisions me concernant, contestation, issue et motivation du comité), `/mon-compte/moderation/contester/{entrée}`, `/moderation/contestations` et `/moderation/contestations/{id}` (comité ; une contestation de sa propre décision est affichée sans formulaire), suspension depuis le dossier de modération.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |

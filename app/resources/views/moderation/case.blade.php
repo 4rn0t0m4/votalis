@@ -97,6 +97,30 @@
                     <x-button variant="danger" class="mt-3 w-full">Masquer</x-button>
                 </form>
 
+                @can('arbitrate-appeals')
+                    @if ($target->author && ! $target->author->role->isPrivileged())
+                        <form method="POST" action="{{ route('moderation.case.suspend', ['type' => $type, 'id' => $target->id]) }}" class="border-t border-ink-200 pt-4">
+                            @csrf
+                            @error('suspend') <x-alert type="error" class="mb-2">{{ $message }}</x-alert> @enderror
+                            @error('days') <x-alert type="error" class="mb-2">{{ $message }}</x-alert> @enderror
+                            <label for="suspend-motive" class="mb-1 block text-sm font-medium">Suspendre le compte de l'auteur (comité)</label>
+                            @if ($target->author->isSuspended())
+                                <p class="text-xs text-ink-500">Ce compte est déjà suspendu.</p>
+                            @else
+                                <select id="suspend-motive" name="motive" required class="block w-full rounded border border-ink-300 px-3 py-2 text-sm">
+                                    <option value="">— Motif —</option>
+                                    @foreach ($motives as $motive)
+                                        <option value="{{ $motive->value }}">{{ $motive->label() }}</option>
+                                    @endforeach
+                                </select>
+                                <label for="suspend-days" class="mb-1 mt-2 block text-sm font-medium">Durée en jours (vide : sans terme)</label>
+                                <input id="suspend-days" name="days" type="number" inputmode="numeric" min="1" max="3650" class="block w-full rounded border border-ink-300 px-3 py-2 text-sm">
+                                <x-button variant="danger" class="mt-3 w-full">Suspendre le compte</x-button>
+                            @endif
+                        </form>
+                    @endif
+                @endcan
+
                 @if ($isProposal && $target->author_id !== null)
                     <form method="POST" action="{{ route('moderation.case.rewrite', ['type' => $type, 'id' => $target->id]) }}" class="border-t border-ink-200 pt-4">
                         @csrf

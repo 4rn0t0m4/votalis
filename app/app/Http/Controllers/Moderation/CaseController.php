@@ -65,6 +65,29 @@ class CaseController extends Controller
         return redirect()->route('moderation.queue')->with('status', __('Contenu masqué. La décision est inscrite au journal public.'));
     }
 
+    /** Suspension du compte de l'auteur, par le comité éditorial seulement. */
+    public function suspend(string $type, int $id, Request $request, ModerationService $service): RedirectResponse
+    {
+        $target = ModerationTarget::resolve($type, $id);
+        /** @var User $editorial */
+        $editorial = $request->user();
+
+        $data = $request->validate([
+            'motive' => ['required', Rule::enum(ReportMotive::class)],
+            'days' => ['nullable', 'integer', 'min:1', 'max:3650'],
+        ], ['motive.required' => 'Choisissez le motif de la suspension.']);
+
+        $author = $target->author;
+
+        if ($author === null) {
+            abort(404);
+        }
+
+        $service->suspend($editorial, $author, ReportMotive::from($data['motive']), isset($data['days']) ? (int) $data['days'] : null);
+
+        return redirect()->route('moderation.case', ['type' => $type, 'id' => $id])->with('status', __('Compte suspendu. La décision est inscrite au journal public et le titulaire en est informé.'));
+    }
+
     public function requestRewrite(string $type, int $id, Request $request, ModerationService $service): RedirectResponse
     {
         $target = ModerationTarget::resolve($type, $id);

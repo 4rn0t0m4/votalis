@@ -148,6 +148,7 @@ class ModerationService
     /** Appelé par ProposalService quand l'auteur a enregistré sa reformulation. */
     public function rewriteReceived(Proposal $target): ModerationLogEntry
     {
+        app(PublicPageCache::class)->flush();
         $motive = $target->hidden_motive;
         $this->publish($target);
 
@@ -188,6 +189,8 @@ class ModerationService
 
     private function close(Proposal|Argument $target, ModerationLogEntry $entry): ModerationLogEntry
     {
+        app(PublicPageCache::class)->flush();
+
         $target->reports()->where('status', ReportStatus::Open)->update([
             'status' => ReportStatus::Handled,
             'log_entry_id' => $entry->id,

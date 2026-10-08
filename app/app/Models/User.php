@@ -29,6 +29,8 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property Carbon $consented_at
  * @property Carbon|null $suspended_at
  * @property Carbon|null $suspended_until
+ * @property Carbon|null $last_seen_at
+ * @property Carbon|null $inactivity_notice_sent_at
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -62,6 +64,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'consented_at' => 'datetime',
             'suspended_at' => 'datetime',
             'suspended_until' => 'datetime',
+            'last_seen_at' => 'date',
+            'inactivity_notice_sent_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'role' => Role::class,

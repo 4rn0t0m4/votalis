@@ -36,6 +36,8 @@ class TradeoffService
      */
     public function answer(User $user, Tradeoff $tradeoff, array $itemIds, array $conditions = []): TradeoffAnswer
     {
+        app(ReadOnlyMode::class)->assertWritable();
+
         if (! $tradeoff->isOpen()) {
             throw ValidationException::withMessages(['tradeoff' => [__('Cet arbitrage n’est pas ouvert.')]]);
         }

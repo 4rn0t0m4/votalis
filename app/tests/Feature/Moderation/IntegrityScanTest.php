@@ -21,6 +21,16 @@ class IntegrityScanTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Chaque test fixe explicitement les seuils qu'il exerce ; les autres sont désactivés.
+        config(['votalis.integrity' => array_merge(config('votalis.integrity'), [
+            'registration_spike' => null, 'vote_spike' => null, 'identical_voting_min_shared' => null,
+            'duplicate_content_similarity' => null, 'night_share' => null,
+        ])]);
+    }
+
     private function seedActivity(): void
     {
         $proposal = Proposal::factory()->create();

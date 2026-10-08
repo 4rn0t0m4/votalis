@@ -8,6 +8,7 @@ use App\Models\Argument;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Services\ContributionCaps;
+use App\Services\ReadOnlyMode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Locked;
@@ -34,6 +35,7 @@ class ArgumentColumn extends Component
 
     public function submit(ContributionCaps $caps): void
     {
+        app(ReadOnlyMode::class)->assertWritable();
         Gate::authorize('create', Argument::class);
 
         /** @var User $user */

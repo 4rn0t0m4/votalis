@@ -20,7 +20,7 @@
                     <livewire:argument-column :proposal="$proposal" :side="\App\Enums\ArgumentSide::Against" :key="'qv-against-'.$proposal->id" />
                 </div>
             @else
-                <button type="button" wire:click="showArguments" class="mt-4 text-sm underline">Voir les arguments pour et contre</button>
+                <button type="button" wire:click="showArguments" class="mt-4 inline-flex min-h-11 items-center rounded border border-ink-300 bg-white px-4 text-sm font-medium hover:bg-ink-100">Voir les arguments pour et contre</button>
             @endif
         </article>
 
@@ -30,9 +30,9 @@
 
         <div class="mt-4 flex items-center justify-between">
             @if ($justVoted)
-                <x-button type="button" wire:click="next" class="w-full">Proposition suivante</x-button>
+                <x-button type="button" wire:click="next" class="min-h-12 w-full text-base">Proposition suivante</x-button>
             @else
-                <button type="button" wire:click="skip" class="text-sm underline">Passer cette proposition</button>
+                <button type="button" wire:click="skip" class="inline-flex min-h-11 w-full items-center justify-center rounded border border-ink-300 bg-white px-4 text-sm font-medium hover:bg-ink-100 sm:w-auto">Passer cette proposition</button>
             @endif
         </div>
     @endif

@@ -148,12 +148,44 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - `App\Services\TransparencyReporter` : signalements par motif, décisions par action et motif, contestations déposées / confirmées / annulées, comptes suspendus, signaux levés et opérations coordonnées confirmées. Jamais d'identifiant ni de texte.
 - Pages : `/moderation/signaux` (Gate `view-integrity-signals` : modération, comité et administrateur technique ; seule la modération change le statut), `/transparence` (public). `docs/incidents.md` : procédure VIGINUM, ANSSI, Cybermalveillance.gouv.fr et CNIL.
 
+## Lot 5, phase A : droits et documents RGPD
+
+| Table | Changement |
+| --- | --- |
+| `users` (ajouts) | `last_seen_at` (date, écrite au plus une fois par jour par le middleware `TrackLastSeen`, remise à zéro du préavis), `inactivity_notice_sent_at` |
+
+- `App\Services\AccountExporter` : export JSON à la demande (`POST /mon-compte/donnees/export`, `Cache-Control: no-store`, jamais stocké) : compte, votes et conditions, propositions avec révisions, arguments, marques, réponses et suggestions d'arbitrage, signalements émis, contestations, décisions de modération me concernant. Aucun pseudonyme ni identifiant d'un tiers.
+- `App\Services\AccountEraser` : seule procédure de suppression (libre-service avec mot de passe et case de confirmation, ou purge d'inactivité). Transaction : textes libres des contestations et précisions des signalements effacés, compteurs `votes_count` décrémentés, jetons de réinitialisation supprimés, puis `delete()` : cascade sur votes, réponses d'arbitrage, marques, clés d'accès ; mise à null sur propositions, arguments, révisions, signalements, contestations, suggestions. Le journal de modération, sans clé étrangère, est intact. Regroupement des conditions relancé. Les rôles privilégiés doivent d'abord être ramenés à participant. **Déconnexion avant suppression** : la rotation du jeton « se souvenir de moi » par `logout()` réinsérerait sinon le modèle supprimé.
+- `accounts:purge-inactive` (planifié chaque nuit) : préavis `InactivityNotice` à (36 mois − 30 jours) d'inactivité (`COALESCE(last_seen_at, created_at)`), suppression à 36 mois si le préavis date d'au moins 30 jours ; une visite annule le préavis ; rôles privilégiés exclus ; `--dry-run`. `auth:clear-resets` quotidien.
+- Pages publiques `/confidentialite`, `/mentions-legales`, `/cookies` (aucune bannière : cookies techniques seulement), lues depuis `config('votalis.legal')` (`LEGAL_*`, à renseigner en production). Projets de registre des traitements et d'AIPD dans `docs/rgpd/`, à faire valider par un juriste ou un DPO.
+
+## Lot 5, phase B : accessibilité et sobriété
+
+- Audit automatisé `make a11y` (pa11y-ci, axe-core + HTML CodeSniffer, WCAG 2 AA, configuration `app/.pa11yci.json`, navigateur local) sur les cinq pages principales, vote rapide inclus après connexion avec le compte de démonstration. Résultat : 5/5 sans erreur. Grille RGAA 4.1 par thématique dans `docs/accessibilite.md`, déclaration publique sur `/accessibilite`.
+- Corrections : pagination accessible (`resources/views/vendor/pagination/tailwind.blade.php`, `aria-current`, textes `sr-only`, éléments inactifs masqués), cibles tactiles d'au moins 44 px sur les boutons et les choix de vote (`min-h-11`), état coché visible sans la couleur seule.
+- Sobriété : `PageWeightTest` mesure HTML + ressources compilées + script Livewire des cinq pages, limite 300 Ko (CDC section 11) ; passe si `public/build` existe, sinon test ignoré avec message.
+
+## Lot 5, phase C : sécurité, charge et exploitation
+
+| Table | Rôle |
+| --- | --- |
+| `settings` | Réglages d'exploitation à chaud : `read_only`, `read_only_message`. Jamais de secret |
+
+- **Lecture seule** : `App\Services\ReadOnlyMode` (état en base, cache 10 s), middleware global `EnforceReadOnly` (toute requête non sûre → 503 avec message, sauf connexion, déconnexion, second facteur, mot de passe, clés d'accès, administration), vérification redondante dans `VoteService`, `ProposalService`, `ReportService`, `TradeoffService::answer` et `ArgumentColumn`. Page `/admin` (capacité `manage-platform`) et commande `votalis:read-only on|off|status`.
+- **Cache des pages publiques** : `App\Services\PublicPageCache` + middleware `cache.public` sur accueil, thèmes, fiches, journal, arbitrages ; visiteurs non connectés seulement, 60 s (`PUBLIC_CACHE_SECONDS`), clé versionnée invalidée par `flush()` depuis les services de modération, de signalement, de proposition et d'appel. En-tête `X-Cache` HIT/MISS. Le nonce CSP est conservé avec la copie (même nonce pour les lecteurs d'une même copie pendant 60 s : accepté, aucun script en ligne n'existe hors Vite et Livewire).
+- **Cache sans objets** : Laravel 13 (`cache.serializable_classes = false`) ne désérialise aucun objet PHP ; `Rankings` ne met en cache que des identifiants et libellés et recharge les modèles (test de non-régression avec le magasin `file`). Règle : ne jamais mettre un modèle en cache.
+- **Dépendances** : audit bloquant en CI (`composer audit`, `npm audit --omit=dev --audit-level=high`, `pip-audit`) et `make audit-deps`.
+- **Production** : `infra/compose.prod.yml` (app, worker, scheduler `schedule:work`, nginx sur 127.0.0.1 derrière le reverse proxy TLS de l'hôte, PostgreSQL, Redis, Meilisearch, embeddings ; aucun autre port), image `infra/docker/php/Dockerfile.prod` (dépendances sans dev, ressources compilées, OPcache). Guide `docs/exploitation.md`.
+- **Sauvegardes** : `infra/backup/backup.sh` (pg_dump, gzip, AES-256-CBC PBKDF2 avec phrase de passe hors serveur, SHA-256, rotation) et `restore.sh` (restauration dans une base de test avec comptages). Vérifié sur la pile Docker.
+- **Charge** : scénarios k6 `infra/load/` (`make load`), latence serveur des votes `votalis:bench-votes` (`make bench-votes`). Résultats du 8 octobre 2026 sur la pile Docker locale (PHP-FPM 5 processus) : lecture publique 50 utilisateurs simultanés, p95 34 ms, 0 % d'erreur ; vote rapide connecté 8 utilisateurs, p95 103 ms ; 500 votes, p95 2,7 ms.
+- **Sécurité** : auto-évaluation ASVS niveau 2 et dossier d'audit dans `docs/securite.md`.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |
 | --- | --- | --- | --- |
 | Développement | Docker local (`infra/compose.dev.yml`) | PostgreSQL conteneur | Mailpit |
-| CI | Woodpecker (Codeberg) | PostgreSQL service | Mailer `array` |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) | PostgreSQL service | Mailer `array` |
 | Préproduction, production | Hébergeur européen à choisir (OVHcloud ou Scaleway) | PostgreSQL managé ou conteneur | Brevo |
 
 ## Décisions
@@ -162,6 +194,7 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | --- | --- | --- |
 | 2026-10-08 | Livewire 4 plutôt qu'Inertia + Vue | Pages publiques légères, compétence Blade existante |
 | 2026-10-08 | Codeberg + Woodpecker CI, miroir GitHub lecture seule | Forge européenne |
+| 2026-10-08 | **Dépôt principal déplacé sur GitHub, CI GitHub Actions** | Codeberg a indiqué que le projet n’était pas conforme à ses conditions d’utilisation (§2.1.7) ; l’accès à Woodpecker n’a jamais été accordé. Le code est public et ne contient ni donnée personnelle ni secret : le Cloud Act ne s'y applique à rien de sensible. Écart assumé avec la section 12 du cahier des charges ; les données des participants restent chez un hébergeur européen. Repli possible vers un Forgejo auto-hébergé en une commande |
 | 2026-10-08 | HIBP en k-anonymat pour les mots de passe fuités | Aucune donnée personnelle transmise ; auto-hébergement étudié au lot 5 |
 | 2026-10-08 | Rôles en colonne enum + Gates, sans package de permissions | Cinq rôles fixes définis par le cahier des charges |
 | 2026-10-08 | `laravel/passkeys` plutôt que `laragear/webauthn` | Le second est abandonné au profit du paquet officiel, intégré à Fortify |
@@ -178,3 +211,9 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Reformulation : fiche invisible, une modification de fond, republication sans validation | Décision du 8 octobre ; le modérateur peut remasquer |
 | 2026-10-08 | Seuils d'intégrité sans valeur par défaut : un seuil absent désactive le détecteur | Le cahier des charges interdit tout seuil anti-fraude dans le dépôt |
 | 2026-10-08 | Signaux jamais appliqués automatiquement, statut changé seulement par la modération | Toute mesure passe par une décision journalisée et contestable |
+| 2026-10-08 | Suppression de compte : contenus publiés conservés sans auteur, signalements et contestations conservés sans texte | Intégrité du débat et exactitude des statistiques de transparence (décision du 8 octobre) |
+| 2026-10-08 | Inactivité mesurée par une date au jour près, jamais de journal de connexion | Minimisation : la seule finalité est la purge à 36 mois |
+| 2026-10-08 | Aucun modèle Eloquent en cache ; identifiants et libellés seulement | Laravel 13 ne désérialise plus d'objets (`serializable_classes = false`) : les classements renvoyaient une erreur 500 avec Redis |
+| 2026-10-08 | Cache des pages publiques côté application (60 s), pas d'en-tête `Cache-Control: public` | Les réponses portent toujours le cookie de session ; un cache partagé pourrait le conserver |
+| 2026-10-08 | Sauvegardes chiffrées avec openssl (AES-256-CBC, PBKDF2) plutôt que age | Outil présent partout, aucune dépendance à installer sur l'hôte |
+| 2026-10-08 | k6 exécuté dans un conteneur local, résultats consignés dans le plan | Aucune donnée ne sort ; outil libre |

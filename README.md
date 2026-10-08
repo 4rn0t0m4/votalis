@@ -31,3 +31,10 @@ make lint   # Pint
 make stan   # PHPStan niveau 8
 make hooks  # pre-commit : gitleaks + Pint
 ```
+
+## Exploitation
+
+- Déploiement, sauvegardes, lecture seule et tenue en charge : `docs/exploitation.md`.
+- Sécurité (auto-évaluation ASVS, dossier d'audit) : `docs/securite.md` ; signalement d'une faille : `SECURITY.md`.
+- Données personnelles : `docs/rgpd/` (registre, AIPD) et pages `/confidentialite`, `/mentions-legales`, `/cookies`, `/accessibilite`.
+- Commandes : `make a11y`, `make load`, `make bench-votes`, `make backup-test`, `make audit-deps`.

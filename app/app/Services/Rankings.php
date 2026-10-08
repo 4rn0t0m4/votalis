@@ -51,8 +51,27 @@ class Rankings
         $themeIds = array_values(array_map('intval', $theme->children()->pluck('id')->push($theme->id)->all()));
         $key = "rankings:{$theme->id}:{$tab}";
 
-        /** @var Collection<int, Proposal> */
-        return Cache::remember($key, now()->addSeconds((int) config('votalis.rankings.cache_seconds', 300)), fn () => $this->compute($themeIds, $tab));
+        // Le cache ne contient que des scalaires (identifiants et libellés) : les modèles sont
+        // rechargés à la lecture, jamais sérialisés (`cache.serializable_classes` est à false).
+        /** @var list<array{id: int, metric: string|null}> $rows */
+        $rows = Cache::remember($key, now()->addSeconds((int) config('votalis.rankings.cache_seconds', 300)), fn () => $this->compute($themeIds, $tab)
+            ->map(fn (Proposal $p) => ['id' => $p->id, 'metric' => $p->getAttribute('metric')])
+            ->values()
+            ->all());
+
+        $proposals = Proposal::query()->published()->with(['theme', 'author'])->findMany(array_column($rows, 'id'))->keyBy('id');
+
+        /** @var Collection<int, Proposal> $ordered */
+        $ordered = collect($rows)
+            ->map(function (array $row) use ($proposals): ?Proposal {
+                $proposal = $proposals->get($row['id']);
+
+                return $proposal?->setAttribute('metric', $row['metric']);
+            })
+            ->filter()
+            ->values();
+
+        return $ordered;
     }
 
     /**

@@ -103,7 +103,7 @@ class TradeoffExercise extends Component
 
         $total = round($tradeoff->items->whereIn('id', $this->selected)->sum(fn ($item) => $item->impactValue()), 2);
         $target = $tradeoff->target();
-        $progress = $target > 0 ? (int) min(100, round(100 * $total / $target)) : 100;
+        $progress = $target > 0 ? (int) max(0, min(100, round(100 * $total / $target))) : 100;
 
         $answer = $service->answerOf($user, $tradeoff);
 

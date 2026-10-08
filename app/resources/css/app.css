@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+/*
+ * Identité visuelle neutre (CDC section 12) : palette sans couleur associée à un parti,
+ * polices système uniquement (aucune ressource externe).
+ */
+@theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --color-ink-50: oklch(98% 0.003 80);
+    --color-ink-100: oklch(95% 0.005 80);
+    --color-ink-200: oklch(89% 0.008 80);
+    --color-ink-300: oklch(80% 0.01 80);
+    --color-ink-500: oklch(55% 0.015 80);
+    --color-ink-700: oklch(38% 0.02 80);
+    --color-ink-900: oklch(22% 0.02 80);
+
+    --color-accent-100: oklch(94% 0.04 190);
+    --color-accent-500: oklch(58% 0.1 190);
+    --color-accent-600: oklch(50% 0.1 190);
+    --color-accent-700: oklch(42% 0.09 190);
+}
+
+@layer base {
+    :focus-visible {
+        outline: 3px solid var(--color-accent-600);
+        outline-offset: 2px;
+    }
+}

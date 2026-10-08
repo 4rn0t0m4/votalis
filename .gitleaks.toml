@@ -1,0 +1,18 @@
+# Configuration gitleaks : règles par défaut + exclusions ciblées.
+# Toute valeur réelle (clé, mot de passe, seuil anti-fraude) est interdite dans le dépôt.
+title = "votalis"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fichiers d'exemple et jeux de test sans secret réel"
+paths = [
+  '''\.env\.example$''',
+  '''composer\.lock$''',
+  '''package-lock\.json$''',
+  '''app/public/build/.*''',
+]
+regexes = [
+  '''base64:[A-Za-z0-9+/=]{44}=*''',  # APP_KEY d'exemple générée en local, jamais celle de production
+]

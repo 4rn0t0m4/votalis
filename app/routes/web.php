@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Account\DataController;
 use App\Http\Controllers\Account\ModerationController as AccountModerationController;
 use App\Http\Controllers\Account\SecurityController;
 use App\Http\Controllers\Committee\ThemeController as CommitteeThemeController;
@@ -22,6 +23,9 @@ Route::view('/comment-ca-marche', 'pages.how-it-works')->name('how-it-works');
 Route::view('/comment-fonctionne-le-classement', 'pages.ranking')->name('ranking-explained');
 Route::view('/charte-de-moderation', 'pages.charter')->name('charter');
 Route::get('/transparence', [TransparencyController::class, 'index'])->name('transparency');
+Route::view('/confidentialite', 'pages.legal.privacy')->name('privacy');
+Route::view('/mentions-legales', 'pages.legal.notice')->name('legal-notice');
+Route::view('/cookies', 'pages.legal.cookies')->name('cookies');
 
 // Journal public de modération : lecture libre.
 Route::get('/journal-de-moderation', [ModerationLogController::class, 'index'])->name('moderation-log.index');
@@ -74,6 +78,10 @@ Route::middleware(['auth', 'verified'])->prefix('mon-compte')->name('account.')-
     Route::get('/moderation', [AccountModerationController::class, 'index'])->name('moderation.index');
     Route::get('/moderation/contester/{entry}', [AccountModerationController::class, 'create'])->whereNumber('entry')->name('moderation.appeal');
     Route::post('/moderation/contester/{entry}', [AccountModerationController::class, 'store'])->whereNumber('entry')->name('moderation.appeal.store');
+    Route::get('/donnees', [DataController::class, 'show'])->name('data.show');
+    Route::post('/donnees/export', [DataController::class, 'export'])->name('data.export');
+    Route::get('/suppression', [DataController::class, 'confirmDeletion'])->name('data.delete');
+    Route::delete('/', [DataController::class, 'destroy'])->name('data.destroy');
 });
 
 Route::middleware('auth')->prefix('mon-compte')->group(function () {

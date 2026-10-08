@@ -1,6 +1,6 @@
 # Plan du lot 5 — Ouverture
 
-Statut : **proposé le 8 octobre 2026, en attente de validation**.
+Statut : **validé le 8 octobre 2026 (« feu vert pour tes reco »), phase A réalisée, phase B en cours**.
 Référence : cahier des charges, sections 7 (sécurité, résilience), 8 (RGPD), 11 (exigences non fonctionnelles), 12 (hébergement), 13 et 14. Branche : `lot-5-ouverture`.
 
 ## 1. Objectif et critères d'acceptation
@@ -80,7 +80,24 @@ Reporté : vérification téléphonique, fusions, consensus (V2) ; export open d
 2. Phase B : audit d'accessibilité, corrections, déclaration, poids des pages. Point d'étape.
 3. Phase C : audit des dépendances en CI, ASVS, lecture seule, cache, sauvegardes, compose de production, charge. Recette E1 à E9, mise à jour de `docs/architecture.md`, `CLAUDE.md`, `README.md`, pull request.
 
-## 7. Questions posées à la validation
+## 7. Point d'étape phase A (8 octobre 2026)
+
+Livré : export JSON (E3), suppression en libre-service avec mot de passe (E4), date de dernière visite et purge d'inactivité avec préavis (E5), purge quotidienne des jetons (E6), pages confidentialité, mentions légales et cookies, lien de consentement à l'inscription, registre des traitements et AIPD en projet. Suite : 204 tests, 1 022 assertions. Point d'attention découvert : `logout()` après `delete()` réinsérait le compte via la rotation du jeton « se souvenir de moi » ; l'ordre est inversé et documenté.
+
+## 8. Questions tranchées le 8 octobre 2026 (« feu vert pour tes reco »)
+
+| Question | Décision |
+| --- | --- |
+| Q1 Hébergeur, e-mail | Guide générique : OVHcloud ou Scaleway, fournisseur d'e-mail européen |
+| Q2 Matomo | Reporté au déploiement, service optionnel, aucun script de mesure dans le MVP |
+| Q3 Suppression | Signalements et contestations conservés sans auteur ni texte libre |
+| Q4 Inactivité | Date de dernière visite (au plus une mise à jour par jour), préavis unique 30 jours avant |
+| Q5 Charge | k6, exécuté localement |
+| Q6 Audits externes | Constats traités dans une branche ultérieure |
+| Q7 Responsable de traitement | Champs à compléter dans les documents |
+| Q8 Lecture seule | Page `/admin` (administrateur technique) + commande `votalis:read-only` |
+
+## 9. Questions posées à la validation
 
 - **Q1 — Hébergeur et e-mail.** Le guide de déploiement peut rester générique (OVHcloud ou Scaleway, fournisseur d'e-mail européen comme Brevo). Avez-vous déjà un choix, ou je documente les deux options avec leurs points de vigilance ?
 - **Q2 — Matomo.** Le cahier des charges prévoit une mesure d'audience Matomo auto-hébergée en mode exempté. Je propose de la reporter au déploiement (service optionnel dans le compose de production, aucun script de mesure dans le MVP tant qu'elle n'est pas installée). D'accord ?

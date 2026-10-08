@@ -85,6 +85,12 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Tests** : dans Docker, `APP_ENV=local` est exporté par Compose ; `phpunit.xml` force `APP_ENV=testing` via `<env>` et `<server>`. Les simulations HTTP du service d'embeddings utilisent le motif `*/embed`, valable sur l'hôte comme dans le conteneur. Une erreur PostgreSQL attendue dans un test doit être isolée par `DB::beginTransaction()` / `rollBack()` (point de sauvegarde), sinon la transaction du test est avortée.
 - **Blade** : une directive inline doit être précédée d'un espace (`modération @if (...)`) ; collée à un mot (`modération@if`), elle n'est pas compilée.
 
+## Ouverture (lot 5)
+
+- **Données personnelles** : export uniquement par `AccountExporter` (aucune donnée d'un tiers), suppression uniquement par `AccountEraser` (déconnecter **avant** d'appeler `erase()` dans un contrôleur). Toute nouvelle table liée à `users` choisit explicitement `cascadeOnDelete` (donnée personnelle) ou `nullOnDelete` (contenu public) et est ajoutée à l'export.
+- **Inactivité** : `TrackLastSeen` écrit `last_seen_at` au jour près ; ne jamais ajouter d'heure, d'IP ni d'historique.
+- **Pages légales** : `config('votalis.legal')`, valeurs dans l'environnement (`LEGAL_*`), jamais dans le dépôt. Documents internes dans `docs/rgpd/`.
+
 ## Conventions
 
 - Interface en **français**, chaînes externalisées dans `app/lang/fr/`.

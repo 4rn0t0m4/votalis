@@ -148,6 +148,17 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - `App\Services\TransparencyReporter` : signalements par motif, décisions par action et motif, contestations déposées / confirmées / annulées, comptes suspendus, signaux levés et opérations coordonnées confirmées. Jamais d'identifiant ni de texte.
 - Pages : `/moderation/signaux` (Gate `view-integrity-signals` : modération, comité et administrateur technique ; seule la modération change le statut), `/transparence` (public). `docs/incidents.md` : procédure VIGINUM, ANSSI, Cybermalveillance.gouv.fr et CNIL.
 
+## Lot 5, phase A : droits et documents RGPD
+
+| Table | Changement |
+| --- | --- |
+| `users` (ajouts) | `last_seen_at` (date, écrite au plus une fois par jour par le middleware `TrackLastSeen`, remise à zéro du préavis), `inactivity_notice_sent_at` |
+
+- `App\Services\AccountExporter` : export JSON à la demande (`POST /mon-compte/donnees/export`, `Cache-Control: no-store`, jamais stocké) : compte, votes et conditions, propositions avec révisions, arguments, marques, réponses et suggestions d'arbitrage, signalements émis, contestations, décisions de modération me concernant. Aucun pseudonyme ni identifiant d'un tiers.
+- `App\Services\AccountEraser` : seule procédure de suppression (libre-service avec mot de passe et case de confirmation, ou purge d'inactivité). Transaction : textes libres des contestations et précisions des signalements effacés, compteurs `votes_count` décrémentés, jetons de réinitialisation supprimés, puis `delete()` : cascade sur votes, réponses d'arbitrage, marques, clés d'accès ; mise à null sur propositions, arguments, révisions, signalements, contestations, suggestions. Le journal de modération, sans clé étrangère, est intact. Regroupement des conditions relancé. Les rôles privilégiés doivent d'abord être ramenés à participant. **Déconnexion avant suppression** : la rotation du jeton « se souvenir de moi » par `logout()` réinsérerait sinon le modèle supprimé.
+- `accounts:purge-inactive` (planifié chaque nuit) : préavis `InactivityNotice` à (36 mois − 30 jours) d'inactivité (`COALESCE(last_seen_at, created_at)`), suppression à 36 mois si le préavis date d'au moins 30 jours ; une visite annule le préavis ; rôles privilégiés exclus ; `--dry-run`. `auth:clear-resets` quotidien.
+- Pages publiques `/confidentialite`, `/mentions-legales`, `/cookies` (aucune bannière : cookies techniques seulement), lues depuis `config('votalis.legal')` (`LEGAL_*`, à renseigner en production). Projets de registre des traitements et d'AIPD dans `docs/rgpd/`, à faire valider par un juriste ou un DPO.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |
@@ -178,3 +189,5 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Reformulation : fiche invisible, une modification de fond, republication sans validation | Décision du 8 octobre ; le modérateur peut remasquer |
 | 2026-10-08 | Seuils d'intégrité sans valeur par défaut : un seuil absent désactive le détecteur | Le cahier des charges interdit tout seuil anti-fraude dans le dépôt |
 | 2026-10-08 | Signaux jamais appliqués automatiquement, statut changé seulement par la modération | Toute mesure passe par une décision journalisée et contestable |
+| 2026-10-08 | Suppression de compte : contenus publiés conservés sans auteur, signalements et contestations conservés sans texte | Intégrité du débat et exactitude des statistiques de transparence (décision du 8 octobre) |
+| 2026-10-08 | Inactivité mesurée par une date au jour près, jamais de journal de connexion | Minimisation : la seule finalité est la purge à 36 mois |

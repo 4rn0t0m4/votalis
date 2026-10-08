@@ -47,6 +47,28 @@ return [
     'typo_ratio' => (float) env('PROPOSAL_TYPO_RATIO', 0.10),
 
     /*
+    | Classements (CDC 4.10) : nombre minimal de votes pour figurer dans les onglets
+    | « clivantes » et « nécessaires mais pas souhaitées », durée du cache en secondes.
+    */
+    'rankings' => [
+        'min_votes' => (int) env('RANKINGS_MIN_VOTES', 10),
+        'cache_seconds' => (int) env('RANKINGS_CACHE_SECONDS', 300),
+        'per_tab' => 20,
+    ],
+
+    /*
+    | Vote rapide (CDC 4.3) : tirage pondéré pour donner leur chance aux propositions
+    | récentes et peu votées.
+    */
+    'quick_vote' => [
+        'recent_days' => (int) env('QUICK_VOTE_RECENT_DAYS', 14),
+        'recent_weight' => (int) env('QUICK_VOTE_RECENT_WEIGHT', 3),
+        'low_votes_threshold' => (int) env('QUICK_VOTE_LOW_VOTES', 10),
+        'low_votes_weight' => (int) env('QUICK_VOTE_LOW_VOTES_WEIGHT', 2),
+        'sample_size' => 200,
+    ],
+
+    /*
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),

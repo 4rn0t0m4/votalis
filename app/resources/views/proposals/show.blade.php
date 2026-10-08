@@ -68,6 +68,10 @@
             </aside>
         </div>
 
+        <div class="mt-8">
+            <livewire:vote-box :proposal="$proposal" :key="'vote-'.$proposal->id" />
+        </div>
+
         <section class="mt-8" aria-labelledby="arguments">
             <h2 id="arguments" class="sr-only">Arguments</h2>
             <div class="grid gap-6 md:grid-cols-2">

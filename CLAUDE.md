@@ -61,6 +61,12 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Livewire** : composants de classe dans `app/Livewire`, vues dans `resources/views/livewire`. Les paramètres de `mount()` homonymes d'une propriété publique y sont affectés directement : typer la propriété en conséquence (ex. `ArgumentSide $side`).
 - **Tests** : `Vite::useHotFile()` pointe vers un fichier inexistant dans `Tests\TestCase` pour que les pages rendent les assets compilés même quand le serveur Vite de développement tourne.
 
+## Participation (lot 3)
+
+- **Votes** : toujours par `App\Services\VoteService::cast()`, jamais par `Vote::create()` : c'est lui qui applique le plafond, le verrou de la fiche, le vote initial et le marquage « après lecture des arguments ».
+- **Classements** : `App\Services\Rankings`, définitions publiques dans `docs/classement.md`. Ne jamais ajouter un tri par nombre de soutiens.
+- **Vote rapide** : `QuickVoteSelector`, poids dans `config/votalis.php` (`quick_vote.*`).
+
 ## Conventions
 
 - Interface en **français**, chaînes externalisées dans `app/lang/fr/`.

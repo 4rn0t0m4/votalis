@@ -29,6 +29,27 @@
     <x-form.counted-field name="measure" label="Mesure proposée" :max="$limits['measure']" :value="$measure" rows="10"
         help="Ce qui changerait concrètement : qui, quoi, comment." />
 
+    @if ($similar !== [])
+        <aside class="rounded-lg border border-accent-500/40 bg-accent-100/40 p-4" aria-live="polite" aria-labelledby="similaires">
+            <h2 id="similaires" class="text-sm font-semibold">Des propositions proches existent déjà</h2>
+            <p class="mt-1 text-sm text-ink-700">Avant de déposer, vérifiez qu'il ne s'agit pas de la même mesure. Vous pouvez la soutenir en votant, ou déposer quand même si la vôtre est différente.</p>
+            <ul class="mt-3 space-y-2 text-sm">
+                @foreach ($similar as $item)
+                    <li class="flex flex-wrap items-center justify-between gap-2 rounded bg-white px-3 py-2" wire:key="similar-{{ $item['id'] }}">
+                        <span><a href="{{ $item['url'] }}" target="_blank" rel="noopener" class="font-medium underline">{{ $item['title'] }}</a> <span class="text-ink-500">· {{ $item['theme'] }} · {{ $item['similarity'] }} % de similarité</span></span>
+                        <span class="flex gap-2">
+                            <a href="{{ $item['url'] }}" target="_blank" rel="noopener" class="rounded border border-ink-300 px-2 py-0.5 text-xs hover:bg-ink-100">Soutenir</a>
+                            <span class="rounded border border-ink-200 px-2 py-0.5 text-xs text-ink-500" title="Les variantes arrivent en V2">Proposer une variante (bientôt)</span>
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+            <p class="mt-2 text-xs text-ink-500">Vous pouvez continuer et déposer quand même : le formulaire reste actif.</p>
+        </aside>
+    @elseif ($similarChecked && ! $locked)
+        <p class="text-sm text-ink-500" aria-live="polite">Aucune proposition proche trouvée.</p>
+    @endif
+
     <fieldset>
         <legend class="mb-1 block text-sm font-medium">Coût ou impact estimé <span aria-hidden="true">*</span></legend>
         <x-form.counted-field name="cost_estimate" label="Estimation" :max="$limits['cost_estimate']" :value="$cost_estimate" :disabled="$cost_unknown || $locked" labelClass="sr-only"

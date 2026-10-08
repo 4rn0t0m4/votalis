@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\UserProvider;
 use App\Enums\Role;
 use App\Models\User;
+use App\Policies\VotePolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn () => Password::min(12)->uncompromised());
 
         $this->defineGates();
+
+        // Le vote porte sur une proposition sans être un modèle à part entière : Gate explicite.
+        Gate::define('vote', [VotePolicy::class, 'vote']);
     }
 
     /** Une Gate par capacité ; chaque rôle n'a que celles que lui donne le cahier des charges. */

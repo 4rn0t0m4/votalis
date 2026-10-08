@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Proposal;
 use App\Models\Theme;
+use App\Services\Rankings;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 
 class ThemeController extends Controller
 {
@@ -22,20 +24,39 @@ class ThemeController extends Controller
         return view('themes.index', ['themes' => $themes]);
     }
 
-    public function show(Theme $theme): View
+    public function show(Request $request, Theme $theme, Rankings $rankings): View
     {
         $theme->load(['parent', 'children' => fn ($q) => $q->listed()]);
 
+        $tab = (string) $request->query('classement', 'recentes');
+
+        if (! in_array($tab, Rankings::TABS, true)) {
+            $tab = 'recentes';
+        }
+
         $themeIds = $theme->children->pluck('id')->push($theme->id);
 
-        $proposals = Proposal::query()
-            ->published()
-            ->whereIn('theme_id', $themeIds)
-            ->with(['theme', 'author'])
-            ->withCount(['arguments' => fn ($q) => $q->published()])
-            ->latest()
-            ->paginate(20);
+        $proposals = $tab === 'recentes'
+            ? Proposal::query()
+                ->published()
+                ->whereIn('theme_id', $themeIds)
+                ->with(['theme', 'author'])
+                ->withCount(['arguments' => fn ($q) => $q->published()])
+                ->latest()
+                ->paginate(20)
+                ->withQueryString()
+            : null;
 
-        return view('themes.show', ['theme' => $theme, 'proposals' => $proposals]);
+        $pending = Rankings::pending($tab);
+        $ranked = $tab !== 'recentes' && $pending === null ? $rankings->forTheme($theme, $tab) : collect();
+
+        return view('themes.show', [
+            'theme' => $theme,
+            'proposals' => $proposals,
+            'ranked' => $ranked,
+            'tab' => $tab,
+            'tabs' => Rankings::labels(),
+            'pending' => $pending,
+        ]);
     }
 }

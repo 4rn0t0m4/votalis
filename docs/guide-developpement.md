@@ -30,7 +30,7 @@ docs/         architecture.md, classement.md, plans/
 ## Commandes
 
 ```sh
-make up          # Démarre Docker (app, nginx, PostgreSQL 16 + pgvector, Redis, Mailpit, Vite)
+make up          # Démarre Docker (app, worker, nginx, PostgreSQL 16 + pgvector, Redis, Meilisearch, embeddings, Mailpit, Vite)
 make shell       # Shell dans le conteneur app
 make test        # php artisan test (sur PostgreSQL, jamais SQLite)
 make lint        # Pint en vérification
@@ -60,6 +60,17 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Import** : `php artisan proposals:import fichier.csv [--dry-run]`, format dans `docs/import-amorcage.md`, jeu de test `tests/Fixtures/amorcage-200.csv`.
 - **Livewire** : composants de classe dans `app/Livewire`, vues dans `resources/views/livewire`. Les paramètres de `mount()` homonymes d'une propriété publique y sont affectés directement : typer la propriété en conséquence (ex. `ArgumentSide $side`).
 - **Tests** : `Vite::useHotFile()` pointe vers un fichier inexistant dans `Tests\TestCase` pour que les pages rendent les assets compilés même quand le serveur Vite de développement tourne.
+
+## Participation (lot 3)
+
+- **Votes** : toujours par `App\Services\VoteService::cast()`, jamais par `Vote::create()` : c'est lui qui applique le plafond, le verrou de la fiche, le vote initial et le marquage « après lecture des arguments ».
+- **Classements** : `App\Services\Rankings`, définitions publiques dans `docs/classement.md`. Ne jamais ajouter un tri par nombre de soutiens.
+- **Vote rapide** : `QuickVoteSelector`, poids dans `config/votalis.php` (`quick_vote.*`).
+- **Embeddings** : uniquement via `App\Services\EmbeddingClient` (hôtes autorisés, repli `null`). Jamais d'appel direct au service, jamais d'API externe. Vecteurs écrits avec `EmbeddingClient::literal()`, requêtes avec `embedding <=> ?::vector`.
+- **Service Python** : `consensus/` (FastAPI). Qualité : `ruff check . && ruff format --check . && mypy && pytest` dans un conteneur `python:3.12-slim` avec `requirements-test.txt` (sans torch). Le modèle n'est téléchargé qu'au build de l'image.
+- **Recherche** : Scout + Meilisearch ; `toSearchableArray()` ne doit jamais contenir de donnée d'auteur. Tests avec `SCOUT_DRIVER=collection`.
+- **Arbitrages** : toujours par `App\Services\TradeoffService` (réponse, ajout de mesure, statut, suggestion). Une mesure sans `impact`, `uncertainty` et `source_url` est refusée.
+- **Files** : les jobs sont `ShouldQueue` ; en développement, le service `worker` les traite. Dans les tests, `QUEUE_CONNECTION=sync`.
 
 ## Conventions
 

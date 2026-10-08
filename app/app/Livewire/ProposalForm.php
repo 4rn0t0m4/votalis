@@ -6,6 +6,7 @@ use App\Enums\ThemeStatus;
 use App\Models\Proposal;
 use App\Models\Theme;
 use App\Models\User;
+use App\Services\DuplicateFinder;
 use App\Services\ProposalRules;
 use App\Services\ProposalService;
 use Illuminate\Contracts\View\View;
@@ -37,6 +38,11 @@ class ProposalForm extends Component
 
     public bool $personal_source = false;
 
+    /** @var array<int, array{id: int, title: string, theme: string, url: string, similarity: int}> */
+    public array $similar = [];
+
+    public bool $similarChecked = false;
+
     public function mount(?Proposal $proposal = null, ?int $theme = null): void
     {
         if ($proposal !== null && $proposal->exists) {
@@ -56,6 +62,43 @@ class ProposalForm extends Component
             Gate::authorize('create', Proposal::class);
             $this->theme_id = $theme;
         }
+    }
+
+    public function updatedTitle(): void
+    {
+        $this->refreshSimilar();
+    }
+
+    public function updatedMeasure(): void
+    {
+        $this->refreshSimilar();
+    }
+
+    /** Détection de doublons (CDC 4.5) : déclenchée dès que titre et mesure sont assez renseignés. */
+    public function refreshSimilar(): void
+    {
+        $finder = app(DuplicateFinder::class);
+
+        if (! $finder->enoughText($this->title, $this->measure)) {
+            $this->similar = [];
+            $this->similarChecked = false;
+
+            return;
+        }
+
+        $exclude = $this->proposal !== null ? [$this->proposal->id] : [];
+
+        $this->similar = $finder->similarTo($this->title, $this->measure, $exclude)
+            ->map(fn (Proposal $p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'theme' => $p->theme->fullName(),
+                'url' => $p->url(),
+                'similarity' => (int) round(100 * (float) $p->getAttribute('similarity')),
+            ])
+            ->values()
+            ->all();
+        $this->similarChecked = true;
     }
 
     public function addSource(): void

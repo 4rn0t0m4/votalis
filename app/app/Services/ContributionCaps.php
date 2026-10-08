@@ -22,6 +22,31 @@ class ContributionCaps
         return $this->adjust($user, (int) config('votalis.caps.arguments_per_day', 20));
     }
 
+    public function votesPerDay(User $user): int
+    {
+        return $this->adjust($user, (int) config('votalis.caps.votes_per_day', 300));
+    }
+
+    /** Seuls les nouveaux votes comptent ; réviser un vote existant est toujours possible. */
+    public function remainingVotes(User $user): int
+    {
+        $used = $user->votes()->where('created_at', '>=', now()->subDay())->count();
+
+        return max(0, $this->votesPerDay($user) - $used);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function assertCanVote(User $user): void
+    {
+        if ($this->remainingVotes($user) === 0) {
+            throw ValidationException::withMessages([
+                'cap' => [__('Vous avez atteint le plafond de :max votes par jour. Revenez demain, vos votes existants restent modifiables.', ['max' => $this->votesPerDay($user)])],
+            ]);
+        }
+    }
+
     public function remainingProposals(User $user, Theme $theme): int
     {
         $used = $user->proposals()->where('theme_id', $theme->id)->where('created_at', '>=', now()->subMonth())->count();

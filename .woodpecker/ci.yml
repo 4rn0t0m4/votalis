@@ -50,6 +50,14 @@ steps:
     commands:
       - cd app && npm ci && npm run build
 
+  python:
+    image: python:3.12-slim
+    commands:
+      - cd consensus && pip install -q -r requirements-test.txt
+      - ruff check . && ruff format --check .
+      - mypy
+      - pytest -q
+
   tests:
     image: *php_image
     depends_on: [composer, assets]

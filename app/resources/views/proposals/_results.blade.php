@@ -41,4 +41,41 @@
             </ul>
         </div>
     @endif
+    @if (! empty($consensus))
+        @php $consensusScore = $consensus->score === null ? null : (int) round(100 * (float) $consensus->score); @endphp
+        <div class="rounded-2xl bg-mist-100 p-4" aria-labelledby="consensus-{{ $consensus->proposal_id }}">
+            <p id="consensus-{{ $consensus->proposal_id }}" class="eyebrow text-ink-700">Accord par groupe de votants</p>
+            <p class="mt-1 text-sm text-ink-700">Les votants sont regroupés selon la ressemblance de leurs votes sur l'ensemble des fiches. Les groupes ne sont ni nommés ni décrits. <a href="{{ route('ranking-explained') }}#consensus" class="link">Comment c'est calculé</a></p>
+            <ul class="mt-3 space-y-2.5">
+                @foreach ($consensus->groups as $group)
+                    @php
+                        $agree = (int) round(100 * $group['agree_rate']);
+                        $needed = (int) round(100 * $group['necessary_rate']);
+                    @endphp
+                    <li>
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                            <span class="font-bold text-ink-900">Groupe {{ $group['label'] }}</span>
+                            @if ($group['represented'])
+                                <span class="text-ink-700"><strong class="text-accent-700">{{ $agree }} %</strong> la jugent souhaitable · {{ $needed }} % nécessaire · {{ trans_choice(':count votant|:count votants', $group['voters']) }}</span>
+                            @else
+                                <span class="text-ink-700">trop peu de votants ({{ $group['voters'] }}) pour compter</span>
+                            @endif
+                        </div>
+                        @if ($group['represented'])
+                            <svg class="reveal mt-1 h-2.5 w-full overflow-hidden rounded-full bg-white" role="img" aria-label="Groupe {{ $group['label'] }} : {{ $agree }} % la jugent souhaitable">
+                                <rect x="0" y="0" width="{{ $agree }}%" height="100%" rx="5" class="fill-accent-600" />
+                            </svg>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+            <p class="mt-3 text-sm font-semibold text-ink-900">
+                @if ($consensusScore !== null)
+                    Accord minimal entre les groupes : {{ $consensusScore }} %.
+                @else
+                    Pas assez de votants dans au moins deux groupes pour classer cette fiche par consensus.
+                @endif
+            </p>
+        </div>
+    @endif
 </div>

@@ -12,6 +12,9 @@ export default defineConfig({
     ],
     server: {
         // En Docker, Vite écoute sur 0.0.0.0 mais le navigateur le joint via localhost.
+        // Port 5174 par défaut : 5173 est souvent pris sur l'hôte par un autre projet.
+        port: Number(process.env.VITE_PORT ?? 5174),
+        strictPort: true,
         hmr: {
             host: 'localhost',
         },

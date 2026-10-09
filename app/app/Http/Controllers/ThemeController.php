@@ -47,7 +47,7 @@ class ThemeController extends Controller
                 ->withQueryString()
             : null;
 
-        $pending = Rankings::pending($tab);
+        $pending = $rankings->pending($tab);
         $ranked = $tab !== 'recentes' && $pending === null ? $rankings->forTheme($theme, $tab) : collect();
 
         return view('themes.show', [

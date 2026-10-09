@@ -109,7 +109,7 @@ class RankingsTest extends TestCase
         }
 
         $this->get("/themes/{$this->theme->slug}?classement=arbitrages")->assertSee('Pas encore assez');
-        $this->get("/themes/{$this->theme->slug}?classement=consensuelles")->assertSee('V2');
+        $this->get("/themes/{$this->theme->slug}?classement=consensuelles")->assertSee('pas encore activé');
         $this->get("/themes/{$this->theme->slug}?classement=inconnu")->assertOk();
 
         $this->assertNotContains('soutien', array_map('mb_strtolower', array_keys(Rankings::labels())));

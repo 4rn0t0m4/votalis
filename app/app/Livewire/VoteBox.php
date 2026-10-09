@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\VoteValue;
 use App\Models\Proposal;
 use App\Models\User;
+use App\Services\Consensus;
 use App\Services\Journey;
 use App\Services\VoteService;
 use Illuminate\Contracts\View\View;
@@ -114,6 +115,8 @@ class VoteBox extends Component
             'canVote' => $user !== null && Gate::forUser($user)->allows('vote', $proposal),
             'isAuthor' => $user !== null && $proposal->author_id === $user->id,
             'results' => $vote !== null ? $service->results($proposal) : null,
+            // Accord par groupe de votants (lot 7) : comme les résultats, seulement après le vote.
+            'consensus' => $vote !== null || ($user !== null && $proposal->author_id === $user->id) ? app(Consensus::class)->scoreFor($proposal) : null,
             'values' => VoteValue::cases(),
         ]);
     }

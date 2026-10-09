@@ -11,3 +11,7 @@ Schedule::command('transparency:report')->quarterly()->at('06:00');
 // Conservation (CDC section 8) : préavis puis suppression des comptes inactifs, purge des jetons expirés.
 Schedule::command('accounts:purge-inactive')->dailyAt('05:15')->withoutOverlapping();
 Schedule::command('auth:clear-resets')->daily();
+
+// Classement par consensus (lot 7) : toutes les heures, seulement si CONSENSUS_ENABLED=true.
+Schedule::command('consensus:compute')->hourly()->withoutOverlapping()
+    ->when(fn (): bool => (bool) config('votalis.consensus.enabled', false));

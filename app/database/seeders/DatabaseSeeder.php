@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(DemoTradeoffSeeder::class);
+        // Lot 7 : votants fictifs pour pouvoir montrer le classement par consensus (jamais en production).
+        $this->call(DemoVotersSeeder::class);
     }
 
     /** Compte de développement, créé une seule fois. */

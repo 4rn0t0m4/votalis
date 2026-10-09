@@ -1,4 +1,4 @@
-# Service d'embeddings (et consensus en V2)
+# Service d'embeddings et de consensus
 
 Service Python interne (FastAPI) qui calcule les embeddings des propositions avec un modèle multilingue open source auto-hébergé (`intfloat/multilingual-e5-small`, 384 dimensions). Il n'est jamais exposé à Internet : Laravel l'appelle via le réseau Docker privé.
 
@@ -26,4 +26,7 @@ Tests, style et typage (dans un conteneur, Python 3.12 n'étant pas requis sur l
 docker run --rm -v "$PWD/consensus:/srv" -w /srv python:3.12-slim sh -c "pip install -q -r requirements-dev.txt && ruff check . && mypy && pytest -q"
 ```
 
-Le calcul de consensus par familles de votants (cahier des charges, section 5) rejoindra ce service en V2.
+## Consensus
+
+- `POST /consensus` `{"proposals": [ids], "votes": [[rang, proposition, souhaitable, nécessaire], …], "params": {…}}` : familles de votants et score de consensus par proposition (cahier des charges, section 5 ; algorithme public dans `docs/classement.md`, module `app/consensus.py`). Les votants sont des rangs anonymes attribués par Laravel : le service ne connaît aucun compte. Rien n'est journalisé.
+- `scripts/recalcul.py export.json [--sha256 empreinte]` rejoue un calcul à partir de la charge exportée par `php artisan consensus:compute --export`.

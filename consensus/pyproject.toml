@@ -10,7 +10,7 @@ ignore = ["S101"]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
-files = ["app", "tests"]
+files = ["app", "tests", "scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

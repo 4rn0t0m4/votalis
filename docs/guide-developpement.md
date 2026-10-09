@@ -64,6 +64,7 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Import** : `php artisan proposals:import fichier.csv [--dry-run]`, format dans `docs/import-amorcage.md`, jeu de test `tests/Fixtures/amorcage-200.csv`.
 - **Livewire** : composants de classe dans `app/Livewire`, vues dans `resources/views/livewire`. Les paramètres de `mount()` homonymes d'une propriété publique y sont affectés directement : typer la propriété en conséquence (ex. `ArgumentSide $side`).
 - **Tests** : `Vite::useHotFile()` pointe vers un fichier inexistant dans `Tests\TestCase` pour que les pages rendent les assets compilés même quand le serveur Vite de développement tourne.
+- **Vite en développement** : le conteneur `node` sert les styles sur le port **5174** (`VITE_PORT`), pas 5173, parce que ce port est souvent pris sur l'hôte par le serveur Vite d'un autre projet : le navigateur irait alors chercher `app.css` au mauvais endroit et la page s'afficherait sans style. La CSP (`SecurityHeaders`) n'autorise cette origine qu'en environnement local et la lit dans `app/public/hot` (écrit par Vite au démarrage), jamais en dur. Si cela se reproduit, vérifier ce fichier, `lsof -nP -iTCP:5174` et la console du navigateur (une violation de CSP y est explicite). Le build de production (`npm run build`) se fait sur l'hôte, le binaire natif de Vite manquant dans l'image Alpine.
 
 ## Participation (lot 3)
 
@@ -105,6 +106,13 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Parcours** : `App\Services\Journey` est la seule écriture dans `milestones` ; appeler `evaluate($user)` après toute nouvelle action participante et afficher `takeFresh($user)` via `partials/celebrations`. **Aucun jalon, compteur ou libellé de parcours ne doit apparaître sur une page lisible par un autre compte** (`JourneyPrivacyTest`) : ne jamais charger `milestones` dans une vue publique, ni l'ajouter à `toSearchableArray()`. Un nouveau jalon = un cas dans `App\Enums\Milestone` (règle qualitative, jamais un volume), sa règle dans `Journey::satisfies()`, un test dans `JourneyTest`, la contrainte CHECK de la migration.
 - **Accueil** : agrégats par `PlatformPulse` (comptages seulement, cache 60 s, `PlatformPulse::flush()` si un comptage doit être immédiat).
 - **Accessibilité** : `make a11y` couvre désormais six pages (parcours inclus) et doit rester sans erreur.
+
+## Consensus (lot 7)
+
+- **Interrupteur** : `CONSENSUS_ENABLED` (faux par défaut). Pour l'essayer en local : charger les votants fictifs (`php artisan db:seed --class=DemoVotersSeeder`, 400 comptes, environ 11 000 votes), reconstruire le service (`docker compose … up -d --build embeddings`), puis `php artisan consensus:compute --force --export=/tmp/export.json`. L'affichage exige `CONSENSUS_ENABLED=true` dans `.env` puis `php artisan config:clear`.
+- **Audit** : `python consensus/scripts/recalcul.py /tmp/export.json --sha256 <consensus_runs.input_digest>` redonne les scores de `consensus_scores`.
+- **Règle** : le score n'est jamais calculé en PHP ; Laravel prépare, appelle, valide et affiche. Tout changement d'algorithme passe par `consensus/app/consensus.py`, une nouvelle `ALGO_VERSION`, les tests Python et `docs/classement.md`.
+- **Python** : vérifications dans un conteneur, comme avant : `docker run --rm -v "$PWD/consensus:/srv" -w /srv python:3.12-slim sh -c "pip install -q -r requirements-test.txt && ruff check . && ruff format --check . && mypy && pytest -q"`.
 
 ## Conventions
 

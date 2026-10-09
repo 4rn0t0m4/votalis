@@ -96,8 +96,13 @@ class EmbeddingClient
         return '['.implode(',', array_map(fn (float $v) => rtrim(rtrim(sprintf('%.8F', $v), '0'), '.'), $vector)).']';
     }
 
-    /** URL du service, refusée si son hôte n'est pas autorisé (CDC 9 : rien ne sort du réseau privé). */
     private function url(): string
+    {
+        return self::serviceUrl();
+    }
+
+    /** URL du service interne, refusée si son hôte n'est pas autorisé (CDC 9 : rien ne sort du réseau privé). */
+    public static function serviceUrl(): string
     {
         $url = rtrim((string) config('votalis.embeddings.url'), '/');
         $host = parse_url($url, PHP_URL_HOST);

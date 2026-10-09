@@ -34,13 +34,12 @@ class Rankings
         ];
     }
 
-    /** Onglets dont le calcul n'est pas encore disponible au MVP. */
-    public static function pending(string $tab): ?string
+    public function __construct(private readonly Consensus $consensus) {}
+
+    /** Explication affichée à la place d'un onglet qui ne peut pas encore être servi. */
+    public function pending(string $tab): ?string
     {
-        return match ($tab) {
-            'consensuelles' => 'Le classement par consensus (familles de votants) arrive en V2, une fois quelques centaines de votants actifs atteints.',
-            default => null,
-        };
+        return $tab === 'consensuelles' ? $this->consensus->unavailableReason() : null;
     }
 
     /**
@@ -49,12 +48,14 @@ class Rankings
     public function forTheme(Theme $theme, string $tab): Collection
     {
         $themeIds = array_values(array_map('intval', $theme->children()->pluck('id')->push($theme->id)->all()));
-        $key = "rankings:{$theme->id}:{$tab}";
+        // Les onglets fondés sur le consensus changent à chaque calcul : le numéro de calcul entre dans la clé.
+        $run = in_array($tab, ['consensuelles', 'clivantes'], true) ? $this->consensus->activeRun() : null;
+        $key = "rankings:{$theme->id}:{$tab}".($run ? ":run{$run->id}" : '');
 
         // Le cache ne contient que des scalaires (identifiants et libellés) : les modèles sont
         // rechargés à la lecture, jamais sérialisés (`cache.serializable_classes` est à false).
         /** @var list<array{id: int, metric: string|null}> $rows */
-        $rows = Cache::remember($key, now()->addSeconds((int) config('votalis.rankings.cache_seconds', 300)), fn () => $this->compute($themeIds, $tab)
+        $rows = Cache::remember($key, now()->addSeconds((int) config('votalis.rankings.cache_seconds', 300)), fn () => $this->compute($themeIds, $tab, $run?->id)
             ->map(fn (Proposal $p) => ['id' => $p->id, 'metric' => $p->getAttribute('metric')])
             ->values()
             ->all());
@@ -78,7 +79,7 @@ class Rankings
      * @param  list<int>  $themeIds
      * @return Collection<int, Proposal>
      */
-    private function compute(array $themeIds, string $tab): Collection
+    private function compute(array $themeIds, string $tab, ?int $runId = null): Collection
     {
         $limit = (int) config('votalis.rankings.per_tab', 20);
         $minVotes = (int) config('votalis.rankings.min_votes', 10);
@@ -93,11 +94,16 @@ class Rankings
                 ->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', trans_choice(':count vote|:count votes', $p->votes_count).' · '.trans_choice(':count argument|:count arguments', (int) $p->getAttribute('arguments_count')))),
 
-            'clivantes' => $this->withVoteStats($base, $minVotes)
-                ->whereRaw('(vs.yes + vs.no) > 0')
-                ->orderByRaw('(1.0 - abs(vs.yes - vs.no)::numeric / nullif(vs.yes + vs.no, 0)) desc, vs.total desc')
+            // Calcul de consensus actif : écart entre le groupe le plus et le moins favorable (CDC 5).
+            'clivantes' => $runId !== null ? $this->byConsensus($base, $runId, 'divisiveness')
                 ->limit($limit)->get()
-                ->each(fn (Proposal $p) => $p->setAttribute('metric', VoteService::percent((int) $p->getAttribute('yes'), (int) $p->getAttribute('total')).' % oui · '.VoteService::percent((int) $p->getAttribute('no'), (int) $p->getAttribute('total')).' % non')),
+                ->each(fn (Proposal $p) => $p->setAttribute('metric', sprintf('écart de %d points entre groupes de votants', (int) round(100 * (float) $p->getAttribute('consensus_divisiveness')))))
+                // Sinon : équilibre entre oui et non sur l'ensemble des votants.
+                : $this->withVoteStats($base, $minVotes)
+                    ->whereRaw('(vs.yes + vs.no) > 0')
+                    ->orderByRaw('(1.0 - abs(vs.yes - vs.no)::numeric / nullif(vs.yes + vs.no, 0)) desc, vs.total desc')
+                    ->limit($limit)->get()
+                    ->each(fn (Proposal $p) => $p->setAttribute('metric', VoteService::percent((int) $p->getAttribute('yes'), (int) $p->getAttribute('total')).' % oui · '.VoteService::percent((int) $p->getAttribute('no'), (int) $p->getAttribute('total')).' % non')),
 
             'necessaires' => $this->withVoteStats($base, $minVotes)
                 ->whereRaw('vs.nec_yes > vs.yes')
@@ -135,9 +141,31 @@ class Rankings
                 ->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', 'choisie dans '.VoteService::percent((int) $p->getAttribute('chosen'), (int) $p->getAttribute('answers')).' % des arbitrages ('.$p->getAttribute('chosen').' sur '.$p->getAttribute('answers').')')),
 
+            'consensuelles' => $runId === null ? collect() : $this->byConsensus($base, $runId, 'score')
+                ->limit($limit)->get()
+                ->each(fn (Proposal $p) => $p->setAttribute('metric', sprintf('accord d’au moins %d %% dans chacun des %d groupes de votants', (int) round(100 * (float) $p->getAttribute('consensus_score')), (int) $p->getAttribute('consensus_groups')))),
+
             default => $base->latest()->limit($limit)->get()
                 ->each(fn (Proposal $p) => $p->setAttribute('metric', trans_choice(':count vote|:count votes', $p->votes_count))),
         };
+    }
+
+    /**
+     * Propositions notées par le calcul `$runId`, triées par `$column` décroissant puis par ancienneté.
+     *
+     * @param  Builder<Proposal>  $base
+     * @return Builder<Proposal>
+     */
+    private function byConsensus(Builder $base, int $runId, string $column): Builder
+    {
+        return $base
+            ->join('consensus_scores as cs', fn ($j) => $j->on('cs.proposal_id', '=', 'proposals.id')->where('cs.run_id', '=', $runId))
+            ->whereNotNull("cs.{$column}")
+            ->select('proposals.*')
+            ->selectRaw('cs.score as consensus_score, cs.divisiveness as consensus_divisiveness')
+            ->selectRaw("(select count(*) from json_array_elements(cs.groups) g where (g->>'represented')::boolean) as consensus_groups")
+            ->orderByDesc("cs.{$column}")
+            ->orderBy('proposals.id');
     }
 
     /**

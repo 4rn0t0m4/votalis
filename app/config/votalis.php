@@ -98,6 +98,30 @@ return [
     ],
 
     /*
+    | Classement par consensus (lot 7, CDC section 5). Codé mais DÉSACTIVÉ par défaut :
+    | `CONSENSUS_ENABLED=true` active le calcul horaire et l'affichage. Les valeurs ci-dessous
+    | sont celles publiées dans docs/classement.md ; les valeurs de production vivent dans la
+    | configuration privée. Le calcul est fait par le service interne (même hôte que les embeddings).
+    */
+    'consensus' => [
+        'enabled' => (bool) env('CONSENSUS_ENABLED', false),
+        'timeout' => (float) env('CONSENSUS_TIMEOUT', 120.0),
+        // Seuils d'activation : participants retenus et propositions publiées.
+        'min_participants' => (int) env('CONSENSUS_MIN_PARTICIPANTS', 300),
+        'min_proposals' => (int) env('CONSENSUS_MIN_PROPOSALS', 50),
+        'min_votes_per_participant' => (int) env('CONSENSUS_MIN_VOTES_PER_PARTICIPANT', 7),
+        'min_voters_per_group' => (int) env('CONSENSUS_MIN_VOTERS_PER_GROUP', 5),
+        'k_min' => (int) env('CONSENSUS_K_MIN', 2),
+        'k_max' => (int) env('CONSENSUS_K_MAX', 5),
+        'alpha' => (float) env('CONSENSUS_ALPHA', 1.0),
+        'seed' => (int) env('CONSENSUS_SEED', 20261009),
+        // Au-delà, les scores sont jugés périmés et ne sont plus affichés.
+        'max_age_hours' => (int) env('CONSENSUS_MAX_AGE_HOURS', 24),
+        // Nombre de calculs réussis dont les scores sont conservés (audit récent).
+        'keep_runs' => (int) env('CONSENSUS_KEEP_RUNS', 10),
+    ],
+
+    /*
     | Détection de doublons au dépôt : similarité cosinus minimale et nombre de suggestions.
     | Calibrage multilingual-e5-small (8 oct. 2026) : deux formulations d'une même mesure ≈ 0,90-0,93,
     | deux mesures différentes d'un même domaine ≈ 0,85-0,88, hors sujet ≈ 0,80-0,85.

@@ -2,3 +2,6 @@ fastapi==0.143.*
 uvicorn[standard]>=0.34,<1
 pydantic==2.*
 sentence-transformers==6.*
+# Consensus : déjà tirées par sentence-transformers, déclarées explicitement (scikit-learn : Inria, BSD).
+numpy>=1.26,<3
+scikit-learn>=1.5,<2

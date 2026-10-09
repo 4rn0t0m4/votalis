@@ -106,6 +106,13 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Accueil** : agrégats par `PlatformPulse` (comptages seulement, cache 60 s, `PlatformPulse::flush()` si un comptage doit être immédiat).
 - **Accessibilité** : `make a11y` couvre désormais six pages (parcours inclus) et doit rester sans erreur.
 
+## Consensus (lot 7)
+
+- **Interrupteur** : `CONSENSUS_ENABLED` (faux par défaut). Pour l'essayer en local : charger les votants fictifs (`php artisan db:seed --class=DemoVotersSeeder`, 400 comptes, environ 11 000 votes), reconstruire le service (`docker compose … up -d --build embeddings`), puis `php artisan consensus:compute --force --export=/tmp/export.json`. L'affichage exige `CONSENSUS_ENABLED=true` dans `.env` puis `php artisan config:clear`.
+- **Audit** : `python consensus/scripts/recalcul.py /tmp/export.json --sha256 <consensus_runs.input_digest>` redonne les scores de `consensus_scores`.
+- **Règle** : le score n'est jamais calculé en PHP ; Laravel prépare, appelle, valide et affiche. Tout changement d'algorithme passe par `consensus/app/consensus.py`, une nouvelle `ALGO_VERSION`, les tests Python et `docs/classement.md`.
+- **Python** : vérifications dans un conteneur, comme avant : `docker run --rm -v "$PWD/consensus:/srv" -w /srv python:3.12-slim sh -c "pip install -q -r requirements-test.txt && ruff check . && ruff format --check . && mypy && pytest -q"`.
+
 ## Conventions
 
 - Interface en **français**, chaînes externalisées dans `app/lang/fr/`.

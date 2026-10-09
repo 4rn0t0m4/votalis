@@ -194,6 +194,14 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - **Parcours personnel** : `App\Services\Journey` (`stats`, `evaluate`, `reached`, `takeFresh`, `onboarding`), appelé après `VoteService::cast`, `TradeoffService::answer`, `ProposalService::create`, et depuis `ArgumentColumn` (argument, marque « utile »). Neuf jalons qualitatifs (`App\Enums\Milestone`), règle écrite en clair, aucun jalon de volume. Page `/mon-compte/parcours` (`JourneyController`), parcours de démarrage en trois pas sur l'accueil (`partials/onboarding`), célébration `role=status` affichée une fois (dans le composant Livewire après l'action, sinon au prochain chargement de page par la mise en page). Export RGPD : bloc `parcours` ; suppression en cascade.
 - **Mécaniques écartées** (voir plan du lot 6) : points, niveaux, classement des participants, badges publics, séries quotidiennes, relances, couleurs vert/rouge pour pour/contre.
 
+## Lot 7 : classement par consensus (codé, désactivé par défaut)
+
+- **Service `consensus/`** : module pur `app/consensus.py` (ACP, k-means à graine fixée, taux lissés, score = minimum des groupes représentés) exposé par `POST /consensus` ; `numpy` et `scikit-learn` déclarés explicitement (déjà présents via `sentence-transformers`). Aucune donnée de compte n'arrive au service, rien n'est journalisé.
+- **Laravel** : `App\Services\Consensus` (charge pseudonymisée par rangs aléatoires, seuils, appel, validation, enregistrement, purge), commande `consensus:compute` (planifiée toutes les heures seulement si `CONSENSUS_ENABLED=true` ; `--force` pour un essai, `--export` pour l'audit), tables `consensus_runs` et `consensus_scores` (jamais d'appartenance individuelle), onglets « consensuelles » et « clivantes » dans `Rankings` (clé de cache liée au numéro de calcul), bloc « Accord par groupe de votants » dans `proposals/_results` (après le vote seulement), section dédiée de la page « Comment fonctionne le classement ».
+- **Interrupteur** : `config('votalis.consensus.enabled')`. Éteint : aucun appel, aucun affichage, même si des scores existent. Allumé : calcul horaire, scores affichés tant qu'ils ont moins de `CONSENSUS_MAX_AGE_HOURS`.
+- **Développement** : `DemoVotersSeeder` crée 400 votants fictifs (`votant-fictif-NNN`, trois profils synthétiques tirés avec une graine fixe) pour franchir les seuils ; jamais en production.
+- Définitions publiques et procédure d'audit dans `docs/classement.md`.
+
 ## Environnements
 
 | Environnement | Où | Base | E-mail |

@@ -1,6 +1,6 @@
 # Plan du lot 7 — Classement par consensus
 
-Statut : **proposé le 9 octobre 2026, en attente de validation**.
+Statut : **codé le 9 octobre 2026, désactivé par défaut** (demande d'Arnaud : « je veux qu'il soit codé mais pas encore actif » ; recommandations Q1 à Q8 appliquées).
 Référence : cahier des charges, sections 1 (faire émerger les mesures qui rassemblent des personnes d'opinions différentes), 2 (le consensus arrive en V2), 4.10 (onglets de classement), 5 (service de classement par consensus), 7.2 (anti-manipulation), 8 (pseudonymisation), 10 (table `consensus_scores`), 14. Branche : `lot-7-consensus`.
 
 Demande d'origine : « tu as mis en place le vote par consensus ? », puis « oui » à la proposition d'écrire ce plan.
@@ -116,3 +116,24 @@ Seuls les scores du dernier calcul réussi et des dix précédents sont conserv�
 | Q8 | Créer des votants fictifs en développement pour montrer le classement avant d'avoir 300 participants réels ? | **Oui, 400 comptes fictifs**, uniquement hors production, clairement nommés, recréés à chaque `migrate:fresh --seed` |
 
 Préalable : fusionner la pull request du lot 6 (#4) avant d'ouvrir celle du lot 7, pour que sa différence ne contienne que ce lot.
+
+## 8. Point d'étape et recette (9 octobre 2026)
+
+Réalisé selon les recommandations Q1 à Q8, derrière l'interrupteur `CONSENSUS_ENABLED` (faux par défaut) : éteint, aucun calcul ni affichage, même si des scores existent en base.
+
+| # | Critère | Résultat |
+| --- | --- | --- |
+| C1 | Algorithme publié | `consensus/app/consensus.py` (`consensus-min-1`) ; test « cas calculé à la main » sur deux camps de 6 et 4 votants |
+| C2 | Déterminisme | Tests : deux exécutions identiques ; rangs et ordre d'envoi permutés sans effet |
+| C3 | Campagne de 5 000 votes | Test Python : 500 comptes coordonnés, 10 votes identiques chacun, sur une population synthétique de 600 votants ; la cible n'entre pas dans le top 10. Règle ajoutée pour y parvenir : un groupe trop peu présent sur une fiche est écarté pour cette fiche au lieu de bloquer sa notation (sinon le groupe formé par la campagne, qui ne vote pas sur les fiches consensuelles, les rendait toutes « non notées ») |
+| C4 | Seuils | `ConsensusTest` : sous les seuils, calcul « inactif » sans appel, message explicatif |
+| C5 | Pseudonymisation | Test sur la charge envoyée : rangs 0..n-1, aucun pseudonyme ni e-mail ; schéma sans appartenance individuelle |
+| C6 | Affichage par groupe | Bloc « Accord par groupe de votants » après le vote, barres SVG, texte sans couleur ; test de vue |
+| C7 | Audit | `--export` + `scripts/recalcul.py` ; vérifié sur les données de développement : même empreinte `bcefb09a…`, mêmes scores |
+| C8 | Configuration | `config/votalis.php` + `.env.example`, valeurs par défaut publiées ; rien de production |
+| C9 | Panne | Tests : connexion refusée et réponse invalide → calcul « failed », scores précédents servis ; scores de plus de 24 h masqués |
+| C10 | Non-régression | 247 tests PHP, 13 tests Python, Pint, PHPStan niveau 8, ruff, mypy |
+
+Essai de bout en bout en développement : 400 votants fictifs (11 157 votes), calcul forcé contre le service reconstruit : 3 groupes de 136, 133 et 131 participants, silhouette 0,60, les dix fiches « consensuelles » du jeu fictif en tête. Captures dans `docs/plans/captures/lot-7/`.
+
+Écart par rapport au plan : la table `consensus_runs` porte aussi l'empreinte SHA-256 de la charge envoyée, pour qu'un audit puisse prouver que l'export correspond au calcul enregistré.

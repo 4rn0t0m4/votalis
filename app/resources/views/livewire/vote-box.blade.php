@@ -9,7 +9,7 @@
             <h2 id="vote-{{ $proposal->id }}" class="text-2xl font-extrabold tracking-tight">Votre proposition</h2>
             <p class="mt-2 text-ink-700">Vous êtes l'auteur de cette proposition : vous ne votez pas dessus.</p>
             @if ($results)
-                @include('proposals._results', ['results' => $results])
+                @include('proposals._results', ['results' => $results, 'consensus' => $consensus])
             @endif
         @elseif (! $canVote)
             <h2 id="vote-{{ $proposal->id }}" class="text-2xl font-extrabold tracking-tight">Votre avis, en deux questions</h2>
@@ -34,7 +34,7 @@
                 @endif
             </p>
             @include('partials.celebrations', ['milestones' => array_map(fn (string $k) => \App\Enums\Milestone::from($k), $celebrations)])
-            @include('proposals._results', ['results' => $results])
+            @include('proposals._results', ['results' => $results, 'consensus' => $consensus])
             <button type="button" wire:click="revise" class="btn btn-secondary mt-5"><x-icon name="refresh" class="size-4" /> Réviser mon vote{{ $argumentsVisible ? ' après lecture des arguments' : '' }}</button>
         @else
             <h2 id="vote-{{ $proposal->id }}" class="text-2xl font-extrabold tracking-tight">Votre avis, en deux questions</h2>

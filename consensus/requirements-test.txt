@@ -1,4 +1,6 @@
 # Dépendances de CI : tests avec un modèle factice, sans torch ni sentence-transformers.
+numpy>=1.26,<3
+scikit-learn>=1.5,<2
 fastapi==0.143.*
 pydantic==2.*
 pytest>=8,<10

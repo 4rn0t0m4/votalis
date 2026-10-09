@@ -20,13 +20,17 @@ class SecurityHeaders
         /** @var Response $response */
         $response = $next($request);
 
+        // Développement seulement : le serveur Vite (origine lue dans public/hot, jamais en dur) sert
+        // styles et scripts depuis un autre port, et le rechargement à chaud passe par un websocket.
+        $dev = $this->viteDevOrigin();
+
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}'",
-            "style-src 'self' 'nonce-{$nonce}'",
+            "script-src 'self' 'nonce-{$nonce}'".($dev ? " {$dev}" : ''),
+            "style-src 'self' 'nonce-{$nonce}'".($dev ? " {$dev}" : ''),
             "img-src 'self' data:",
             "font-src 'self'",
-            "connect-src 'self'".(app()->isLocal() ? ' ws: http://localhost:5173' : ''),
+            "connect-src 'self'".($dev ? " ws: {$dev}" : ''),
             "form-action 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
@@ -45,5 +49,17 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /** Origine du serveur Vite de développement (contenu de `public/hot`), ou null hors développement. */
+    private function viteDevOrigin(): ?string
+    {
+        if (! app()->isLocal() || ! Vite::isRunningHot()) {
+            return null;
+        }
+
+        $url = trim((string) file_get_contents(Vite::hotFile()));
+
+        return filter_var($url, FILTER_VALIDATE_URL) !== false ? $url : null;
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Report;
 use App\Models\TradeoffAnswer;
 use App\Models\TradeoffSuggestion;
 use App\Models\User;
+use App\Models\UserMilestone;
 use App\Models\Vote;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -49,6 +50,7 @@ class AccountExporter
                 'souhaitable_initial' => $v->desirable_initial->value,
                 'necessaire_initial' => $v->necessary_initial->value,
                 'revise_apres_arguments' => $v->revised_after_arguments,
+                'apres_arguments' => $v->after_arguments,
                 'cree_le' => $v->created_at?->toIso8601String(),
                 'modifie_le' => $v->updated_at?->toIso8601String(),
             ])->all(),
@@ -103,6 +105,11 @@ class AccountExporter
                 'motivation_du_comite' => $a->decision_note,
                 'deposee_le' => $a->created_at?->toIso8601String(),
                 'tranchee_le' => $a->decided_at?->toIso8601String(),
+            ])->all(),
+            'parcours' => $user->milestones()->orderBy('reached_at')->get()->map(fn (UserMilestone $m): array => [
+                'jalon' => $m->key->value,
+                'libelle' => $m->key->label(),
+                'atteint_le' => $m->reached_at->toIso8601String(),
             ])->all(),
             'decisions_de_moderation_me_concernant' => $this->moderationEntries($user)->map(fn (ModerationLogEntry $e) => [
                 'journal_id' => $e->id,

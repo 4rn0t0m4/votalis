@@ -1,7 +1,7 @@
 <x-layouts.app :title="$tradeoff->exists ? 'Modifier l’arbitrage' : 'Nouvel arbitrage'">
-    <h1 class="text-2xl font-semibold">{{ $tradeoff->exists ? $tradeoff->title : 'Nouvel arbitrage' }}</h1>
+    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $tradeoff->exists ? $tradeoff->title : 'Nouvel arbitrage' }}</h1>
     @if ($tradeoff->exists)
-        <p class="mt-1 text-sm text-ink-500">Statut : {{ $tradeoff->status->label() }} · <a href="{{ route('tradeoffs.show', $tradeoff) }}" class="underline">voir la page publique</a></p>
+        <p class="mt-1 text-sm text-ink-700">Statut : {{ $tradeoff->status->label() }} · <a href="{{ route('tradeoffs.show', $tradeoff) }}" class="link">voir la page publique</a></p>
     @endif
     @if ($errors->has('items')) <x-alert type="error" class="mt-4">{{ $errors->first('items') }}</x-alert> @endif
     @if ($errors->has('status')) <x-alert type="error" class="mt-4">{{ $errors->first('status') }}</x-alert> @endif
@@ -13,16 +13,16 @@
             <h2 class="mb-3 text-lg font-semibold">Exercice</h2>
             <x-form.field name="title" label="Titre" required :value="$tradeoff->title" maxlength="120" help="Ex. « Trouver 40 milliards d’économies ou de recettes »." />
             <div class="mb-4">
-                <label for="objective" class="mb-1 block text-sm font-medium">Objectif chiffré et sourcé <span aria-hidden="true">*</span></label>
-                <textarea id="objective" name="objective" rows="3" required maxlength="1000" class="block w-full rounded border border-ink-300 bg-white px-3 py-2">{{ old('objective', $tradeoff->objective) }}</textarea>
+                <label for="objective" class="mb-1.5 block font-bold">Objectif chiffré et sourcé <span aria-hidden="true">*</span></label>
+                <textarea id="objective" name="objective" rows="3" required maxlength="1000" class="field">{{ old('objective', $tradeoff->objective) }}</textarea>
                 @error('objective') <p class="mt-1 text-sm text-red-800">{{ $message }}</p> @enderror
             </div>
             <div class="grid grid-cols-3 gap-3">
                 <x-form.field name="constraint_value" label="Contrainte" type="number" required :value="$tradeoff->constraint_value" />
                 <x-form.field name="unit" label="Unité" required :value="$tradeoff->unit ?? 'Md€'" maxlength="30" />
                 <div class="mb-4">
-                    <label for="direction" class="mb-1 block text-sm font-medium">Sens</label>
-                    <select id="direction" name="direction" class="block w-full rounded border border-ink-300 bg-white px-3 py-2">
+                    <label for="direction" class="mb-1.5 block font-bold">Sens</label>
+                    <select id="direction" name="direction" class="field">
                         @foreach (\App\Enums\TradeoffDirection::cases() as $direction)
                             <option value="{{ $direction->value }}" @selected(old('direction', $tradeoff->direction?->value ?? 'at_least') === $direction->value)>{{ $direction->label() }}</option>
                         @endforeach
@@ -32,8 +32,8 @@
             <x-form.field name="source_url" label="Source de l’objectif (URL)" type="url" :value="$tradeoff->source_url" />
             <x-form.field name="source_label" label="Libellé de la source" :value="$tradeoff->source_label" maxlength="200" />
             <div class="mb-4">
-                <label for="theme_id" class="mb-1 block text-sm font-medium">Thème (facultatif)</label>
-                <select id="theme_id" name="theme_id" class="block w-full rounded border border-ink-300 bg-white px-3 py-2">
+                <label for="theme_id" class="mb-1.5 block font-bold">Thème (facultatif)</label>
+                <select id="theme_id" name="theme_id" class="field">
                     <option value="">Aucun</option>
                     @foreach ($themes as $theme)
                         <option value="{{ $theme->id }}" @selected((int) old('theme_id', $tradeoff->theme_id) === $theme->id)>{{ $theme->name }}</option>
@@ -46,9 +46,9 @@
         @if ($tradeoff->exists)
             <div class="space-y-8">
                 <section aria-labelledby="mesures">
-                    <h2 id="mesures" class="text-lg font-semibold">Mesures candidates ({{ $tradeoff->items->count() }})</h2>
-                    <p class="mt-1 text-sm text-ink-500">Chiffrage, incertitude et source obligatoires : une mesure sans chiffrage fiable n'entre pas dans un arbitrage.</p>
-                    <ul class="mt-3 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white text-sm">
+                    <h2 id="mesures" class="text-xl font-extrabold tracking-tight">Mesures candidates ({{ $tradeoff->items->count() }})</h2>
+                    <p class="mt-1 text-sm text-ink-700">Chiffrage, incertitude et source obligatoires : une mesure sans chiffrage fiable n'entre pas dans un arbitrage.</p>
+                    <ul class="mt-3 divide-y divide-ink-200 rounded-3xl border-2 border-ink-200 bg-white text-sm">
                         @forelse ($tradeoff->items as $item)
                             <li class="flex items-center justify-between gap-2 p-3">
                                 <span>{{ $item->proposal->title }} <span class="text-ink-500">· {{ $tradeoff->formatAmount($item->impactValue()) }} · {{ $item->uncertainty }}</span></span>
@@ -61,12 +61,12 @@
                             <li class="p-3 text-ink-500">Aucune mesure.</li>
                         @endforelse
                     </ul>
-                    <form method="POST" action="{{ route('committee.tradeoffs.items.store', $tradeoff) }}" class="mt-4 rounded-lg border border-ink-200 bg-white p-4">
+                    <form method="POST" action="{{ route('committee.tradeoffs.items.store', $tradeoff) }}" class="mt-4 card">
                         @csrf
                         <h3 class="mb-2 font-medium">Ajouter une mesure</h3>
                         <div class="mb-3">
-                            <label for="proposal_id" class="mb-1 block text-sm font-medium">Proposition</label>
-                            <select id="proposal_id" name="proposal_id" required class="block w-full rounded border border-ink-300 bg-white px-3 py-2 text-sm">
+                            <label for="proposal_id" class="mb-1.5 block font-bold">Proposition</label>
+                            <select id="proposal_id" name="proposal_id" required class="field text-sm">
                                 <option value="">Choisir…</option>
                                 @foreach ($candidates ?? [] as $candidate)
                                     <option value="{{ $candidate->id }}" @selected((int) old('proposal_id') === $candidate->id)>{{ $candidate->title }}</option>
@@ -84,7 +84,7 @@
                 </section>
 
                 <section aria-labelledby="statut">
-                    <h2 id="statut" class="text-lg font-semibold">Statut</h2>
+                    <h2 id="statut" class="text-xl font-extrabold tracking-tight">Statut</h2>
                     <form method="POST" action="{{ route('committee.tradeoffs.status', $tradeoff) }}" class="mt-2 flex items-center gap-2">
                         @csrf
                         <label for="status" class="sr-only">Statut</label>
@@ -99,12 +99,12 @@
 
                 @php $pending = $tradeoff->suggestions->where('status', \App\Enums\SuggestionStatus::Pending); @endphp
                 <section aria-labelledby="suggestions">
-                    <h2 id="suggestions" class="text-lg font-semibold">Mesures suggérées par les participants ({{ $pending->count() }})</h2>
-                    <ul class="mt-3 divide-y divide-ink-200 rounded-lg border border-ink-200 bg-white text-sm">
+                    <h2 id="suggestions" class="text-xl font-extrabold tracking-tight">Mesures suggérées par les participants ({{ $pending->count() }})</h2>
+                    <ul class="mt-3 divide-y divide-ink-200 rounded-3xl border-2 border-ink-200 bg-white text-sm">
                         @forelse ($pending as $suggestion)
                             <li class="p-3">
                                 <p class="font-medium">{{ $suggestion->proposal->title }}</p>
-                                <p class="text-xs text-ink-500">{{ $suggestion->participant?->pseudonym ?? 'Participant supprimé' }}@if ($suggestion->note) · {{ $suggestion->note }}@endif</p>
+                                <p class="text-xs text-ink-700">{{ $suggestion->participant?->pseudonym ?? 'Participant supprimé' }}@if ($suggestion->note) · {{ $suggestion->note }}@endif</p>
                                 <p class="mt-1 text-xs">Pour l'ajouter, utilisez le formulaire « Ajouter une mesure » avec son chiffrage vérifié.</p>
                                 <form method="POST" action="{{ route('committee.tradeoffs.suggestions.reject', [$tradeoff, $suggestion]) }}" class="mt-1">
                                     @csrf

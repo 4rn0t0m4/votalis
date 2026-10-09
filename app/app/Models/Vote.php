@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property-read Proposal $proposal
  * @property-read User $participant
  */
-#[Fillable(['participant_id', 'proposal_id', 'desirable', 'necessary', 'condition', 'desirable_initial', 'necessary_initial', 'revised_after_arguments'])]
+#[Fillable(['participant_id', 'proposal_id', 'desirable', 'necessary', 'condition', 'desirable_initial', 'necessary_initial', 'revised_after_arguments', 'after_arguments'])]
 class Vote extends Model
 {
     public $incrementing = false;
@@ -40,6 +40,7 @@ class Vote extends Model
             'desirable_initial' => VoteValue::class,
             'necessary_initial' => VoteValue::class,
             'revised_after_arguments' => 'boolean',
+            'after_arguments' => 'boolean',
         ];
     }
 

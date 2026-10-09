@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Committee;
 
+use App\Enums\ThemeIcon;
 use App\Enums\ThemeStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Theme;
@@ -43,6 +44,7 @@ class ThemeController extends Controller
             'name' => $data['name'],
             'slug' => $this->uniqueSlug((string) $data['name']),
             'description' => $data['description'],
+            'icon' => $data['icon'],
             'status' => $data['status'],
             'position' => $data['position'],
             'parent_id' => $data['parent_id'],
@@ -66,6 +68,7 @@ class ThemeController extends Controller
         $theme->update([
             'name' => $data['name'],
             'description' => $data['description'],
+            'icon' => $data['icon'],
             'status' => $data['status'],
             'position' => $data['position'],
             'parent_id' => $data['parent_id'],
@@ -84,12 +87,14 @@ class ThemeController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'description' => ['nullable', 'string', 'max:500'],
+            'icon' => ['nullable', Rule::enum(ThemeIcon::class)],
             'status' => ['required', Rule::enum(ThemeStatus::class)],
             'position' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'parent_id' => ['nullable', 'integer', 'exists:themes,id'],
         ], [], [
             'name' => 'nom',
             'description' => 'description',
+            'icon' => 'pictogramme',
             'status' => 'statut',
             'position' => 'ordre',
             'parent_id' => 'thème parent',
@@ -97,6 +102,7 @@ class ThemeController extends Controller
 
         $data['position'] = $data['position'] ?? 0;
         $data['description'] = $data['description'] ?? null;
+        $data['icon'] = ($data['icon'] ?? null) ?: null;
         $data['parent_id'] = $data['parent_id'] ?? null;
 
         if ($data['parent_id'] !== null) {

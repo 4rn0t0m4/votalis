@@ -199,6 +199,20 @@ class TradeoffTest extends TestCase
         $this->assertDatabaseCount('tradeoff_answers', 0);
     }
 
+    public function test_une_option_a_impact_negatif_abaisse_le_total_sans_casser_la_jauge(): void
+    {
+        [$tradeoff, $items] = $this->tradeoffWithItems([25, -10]);
+
+        Livewire::actingAs($this->participant())->test(TradeoffExercise::class, ['tradeoff' => $tradeoff])
+            ->call('toggle', $items[1]->id)
+            ->assertSee('-10 Md€')
+            ->assertSeeHtml('aria-valuenow="0"')
+            ->call('toggle', $items[0]->id)
+            ->assertSee('15 Md€')
+            ->assertSeeHtml('aria-valuenow="38"')
+            ->assertSee('Contrainte non atteinte');
+    }
+
     public function test_les_resultats_agregent_frequences_combinaisons_et_conditions(): void
     {
         [$tradeoff, $items] = $this->tradeoffWithItems([25, 20, 10]);

@@ -1,17 +1,17 @@
 <x-layouts.app title="Transparence">
     <article class="max-w-3xl">
-        <h1 class="text-3xl font-semibold">Rapports de transparence</h1>
-        <p class="mt-4 text-ink-700">Chaque trimestre, la plateforme publie des chiffres agrégés sur la modération : signalements par motif, décisions, contestations et leur issue, comptes suspendus, opérations coordonnées confirmées. Aucun chiffre ne permet d'identifier une personne. Le détail de chaque décision est dans le <a href="{{ route('moderation-log.index') }}" class="underline">journal public</a>.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Rapports de transparence</h1>
+        <p class="mt-4 text-ink-700">Chaque trimestre, la plateforme publie des chiffres agrégés sur la modération : signalements par motif, décisions, contestations et leur issue, comptes suspendus, opérations coordonnées confirmées. Aucun chiffre ne permet d'identifier une personne. Le détail de chaque décision est dans le <a href="{{ route('moderation-log.index') }}" class="link">journal public</a>.</p>
 
         @forelse ($reports as $report)
             @php($d = $report->data)
-            <section class="mt-8 rounded-lg border border-ink-200 bg-white p-5" aria-labelledby="rapport-{{ $report->id }}">
+            <section class="mt-8 card" aria-labelledby="rapport-{{ $report->id }}">
                 <h2 id="rapport-{{ $report->id }}" class="text-xl font-semibold">{{ $report->title() }}</h2>
-                <p class="mt-1 text-xs text-ink-500">Généré le {{ $report->generated_at->translatedFormat('j F Y') }}</p>
+                <p class="mt-1 text-xs text-ink-700">Généré le {{ $report->generated_at->translatedFormat('j F Y') }}</p>
 
                 <div class="mt-4 grid gap-6 md:grid-cols-2">
                     <div>
-                        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-500">Signalements ({{ $d['reports']['total'] ?? 0 }})</h3>
+                        <h3 class="eyebrow text-ink-700">Signalements ({{ $d['reports']['total'] ?? 0 }})</h3>
                         <table class="mt-2 w-full text-sm">
                             <tbody class="divide-y divide-ink-200">
                                 @foreach ($motives as $motive)
@@ -21,7 +21,7 @@
                         </table>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-500">Décisions ({{ $d['decisions']['total'] ?? 0 }})</h3>
+                        <h3 class="eyebrow text-ink-700">Décisions ({{ $d['decisions']['total'] ?? 0 }})</h3>
                         <table class="mt-2 w-full text-sm">
                             <tbody class="divide-y divide-ink-200">
                                 @foreach ($actions as $action)
@@ -40,7 +40,7 @@
                 </dl>
             </section>
         @empty
-            <p class="mt-8 text-sm text-ink-500">Aucun rapport publié pour l'instant. Le premier paraîtra à la fin du trimestre en cours.</p>
+            <p class="mt-8 text-sm text-ink-700">Aucun rapport publié pour l'instant. Le premier paraîtra à la fin du trimestre en cours.</p>
         @endforelse
     </article>
 </x-layouts.app>

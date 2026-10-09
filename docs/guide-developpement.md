@@ -54,6 +54,8 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 - **Base** : PostgreSQL 16, extensions `vector` et `pgcrypto`. Les tests tournent sur PostgreSQL.
 - **Nom du site** : non choisi. « votalis » est un nom de code technique ; l'interface lit `APP_NAME`, jamais de nom codé en dur.
 
+- **nginx et scripts dynamiques** : Livewire 4 sert son script sous `/livewire-<empreinte>/livewire.js` (aucun fichier dans `public/`). La règle nginx des ressources statiques (`infra/docker/nginx/default.conf`) retombe donc sur `index.php` au lieu de renvoyer 404, sinon toute l'interactivité (vote, arbitrages, formulaires) est muette alors que les pages s'affichent normalement. En développement, après avoir réécrit ce fichier, recréer le conteneur (`docker compose up -d --force-recreate web`) : le montage d'un fichier seul ne suit pas un changement d'inode.
+
 ## Contenu (lot 2)
 
 - **Format imposé** : toutes les règles de la fiche vivent dans `App\Services\ProposalRules` ; formulaire, modification et import passent par `ProposalService`. Ne jamais valider une fiche ailleurs.
@@ -91,10 +93,18 @@ Interface web : http://localhost:8080 · Mailpit : http://localhost:8025
 
 - **Données personnelles** : export uniquement par `AccountExporter` (aucune donnée d'un tiers), suppression uniquement par `AccountEraser` (déconnecter **avant** d'appeler `erase()` dans un contrôleur). Toute nouvelle table liée à `users` choisit explicitement `cascadeOnDelete` (donnée personnelle) ou `nullOnDelete` (contenu public) et est ajoutée à l'export.
 - **Inactivité** : `TrackLastSeen` écrit `last_seen_at` au jour près ; ne jamais ajouter d'heure, d'IP ni d'historique.
-- **Accessibilité** : `make a11y` doit rester à 5/5 (pile Docker démarrée, données de démonstration chargées) ; toute nouvelle page publique majeure s'ajoute à `app/.pa11yci.json` et à `docs/accessibilite.md`. Boutons et choix de vote : hauteur minimale 44 px (`min-h-11`). `PageWeightTest` borne les pages à 300 Ko.
+- **Accessibilité** : `make a11y` doit rester sans erreur (six pages depuis le lot 6) (pile Docker démarrée, données de démonstration chargées) ; toute nouvelle page publique majeure s'ajoute à `app/.pa11yci.json` et à `docs/accessibilite.md`. Boutons et choix de vote : hauteur minimale 44 px (`min-h-11`). `PageWeightTest` borne les pages à 300 Ko.
 - **Lecture seule** : toute nouvelle écriture participante appelle `app(ReadOnlyMode::class)->assertWritable()` dans son service, en plus du middleware global. **Cache** : jamais de modèle Eloquent dans `Cache` (Laravel 13 ne désérialise pas d'objets) ; les pages publiques sont en cache 60 s pour les visiteurs, appeler `PublicPageCache::flush()` après toute écriture qui change une page publique.
 - **Exploitation** : `docs/exploitation.md` (déploiement `infra/compose.prod.yml`, sauvegardes `infra/backup/`, charge `infra/load/`), `docs/securite.md` (ASVS, dossier d'audit).
 - **Pages légales** : `config('votalis.legal')`, valeurs dans l'environnement (`LEGAL_*`), jamais dans le dépôt. Documents internes dans `docs/rgpd/`.
+
+## Expérience (lot 6)
+
+- **Style** : jetons et classes de composants dans `resources/css/app.css` (`btn btn-primary|secondary|ghost|plum|danger`, `card`, `card-flat|lagoon|plum|sand|ink`, `card-lift`, `pill`, `choice`, `field`, `tab`, `eyebrow`, `link`, `rise`, `pop`, `reveal`). Composants Blade : `<x-button>` (accepte `href`, `variant`, `size="lg"`), `<x-card tone="…">`, `<x-pill tone="…">`, `<x-stat>`, `<x-icon name="…">` (ajouter un tracé dans `App\View\Components\Icon::PATHS`), `<x-illustration name="hero|empty|rings|journey">`. Palette : jamais de rouge, bleu franc, vert, rose, orange ou jaune comme couleur d'identité ; le rouge reste aux erreurs ; « pour » et « contre » ont le même traitement.
+- **Jamais de `style=` en ligne** (CSP, test `StyleTest`) : une largeur ou un pourcentage dynamique se dessine en SVG (`<rect width="58%">`, `stroke-dashoffset`) ou avec une classe `w-[55%]` arrondie au pas de 5 %. Toute animation passe par les classes existantes ; `prefers-reduced-motion` est honoré globalement, ne pas le contourner.
+- **Parcours** : `App\Services\Journey` est la seule écriture dans `milestones` ; appeler `evaluate($user)` après toute nouvelle action participante et afficher `takeFresh($user)` via `partials/celebrations`. **Aucun jalon, compteur ou libellé de parcours ne doit apparaître sur une page lisible par un autre compte** (`JourneyPrivacyTest`) : ne jamais charger `milestones` dans une vue publique, ni l'ajouter à `toSearchableArray()`. Un nouveau jalon = un cas dans `App\Enums\Milestone` (règle qualitative, jamais un volume), sa règle dans `Journey::satisfies()`, un test dans `JourneyTest`, la contrainte CHECK de la migration.
+- **Accueil** : agrégats par `PlatformPulse` (comptages seulement, cache 60 s, `PlatformPulse::flush()` si un comptage doit être immédiat).
+- **Accessibilité** : `make a11y` couvre désormais six pages (parcours inclus) et doit rester sans erreur.
 
 ## Conventions
 

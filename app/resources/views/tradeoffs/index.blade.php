@@ -1,24 +1,29 @@
 <x-layouts.app title="Arbitrages">
-    <h1 class="text-2xl font-semibold">Arbitrages</h1>
-    <p class="mt-2 max-w-2xl text-ink-700">Une mesure impopulaire seule perd toujours ; mise en concurrence avec ses alternatives, elle peut être choisie. Chaque arbitrage fixe un objectif chiffré et sourcé : composez la combinaison de mesures qui l'atteint.</p>
+    <div class="max-w-2xl">
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Arbitrages</h1>
+        <p class="mt-3 text-lg text-ink-700">Une mesure impopulaire seule perd toujours ; mise en concurrence avec ses alternatives, elle peut être choisie. Chaque arbitrage fixe un objectif chiffré et sourcé : composez la combinaison de mesures qui l'atteint.</p>
+    </div>
 
     @if ($tradeoffs->isEmpty())
-        <p class="mt-6 text-ink-500">Aucun arbitrage ouvert pour l'instant.</p>
+        <div class="mt-10 flex flex-col items-center gap-4 text-center">
+            <x-illustration name="empty" />
+            <p class="text-ink-500">Aucun arbitrage ouvert pour l'instant.</p>
+        </div>
     @else
-        <ul class="mt-6 space-y-3">
+        <ul class="mt-8 grid gap-5 md:grid-cols-2">
             @foreach ($tradeoffs as $tradeoff)
-                <li class="rounded-lg border border-ink-200 bg-white p-4">
-                    <div class="flex flex-wrap items-start justify-between gap-2">
-                        <h2 class="text-lg font-semibold"><a href="{{ route('tradeoffs.show', $tradeoff) }}" class="hover:underline">{{ $tradeoff->title }}</a></h2>
-                        <span class="rounded bg-ink-100 px-2 py-0.5 text-xs">{{ $tradeoff->status->label() }}</span>
+                <li class="{{ $tradeoff->isOpen() ? 'card-plum' : 'card-flat' }} card-lift rise relative flex flex-col gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-pill :tone="$tradeoff->isOpen() ? 'ink' : 'outline'">{{ $tradeoff->status->label() }}</x-pill>
+                        @if ($tradeoff->theme) <x-pill tone="sand">{{ $tradeoff->theme->name }}</x-pill> @endif
                     </div>
-                    <p class="mt-1 text-sm text-ink-700">{{ $tradeoff->objective }}</p>
-                    <p class="mt-1 text-xs text-ink-500">
-                        {{ mb_strtolower($tradeoff->direction->label()) }} {{ $tradeoff->formatAmount($tradeoff->target()) }}
-                        · {{ trans_choice(':count mesure|:count mesures', $tradeoff->items_count) }}
-                        · {{ trans_choice(':count participant|:count participants', $tradeoff->answers_count) }}
-                        @if ($tradeoff->theme) · {{ $tradeoff->theme->name }} @endif
-                        · <a href="{{ route('tradeoffs.results', $tradeoff) }}" class="underline">résultats</a>
+                    <h2 class="text-2xl leading-tight font-extrabold tracking-tight"><a href="{{ route('tradeoffs.show', $tradeoff) }}" class="text-ink-900 no-underline after:absolute after:inset-0 hover:underline">{{ $tradeoff->title }}</a></h2>
+                    <p class="text-ink-700">{{ $tradeoff->objective }}</p>
+                    <p class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-700">
+                        <span class="text-lg font-extrabold text-ink-900">{{ mb_strtolower($tradeoff->direction->label()) }} {{ $tradeoff->formatAmount($tradeoff->target()) }}</span>
+                        <span>{{ trans_choice(':count mesure|:count mesures', $tradeoff->items_count) }}</span>
+                        <span>{{ trans_choice(':count participant|:count participants', $tradeoff->answers_count) }}</span>
+                        <a href="{{ route('tradeoffs.results', $tradeoff) }}" class="link relative z-10">résultats</a>
                     </p>
                 </li>
             @endforeach

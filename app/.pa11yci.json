@@ -29,6 +29,16 @@
         "click element button[type=submit]",
         "wait for path to be /vote-rapide"
       ]
+    },
+    {
+      "url": "http://localhost:8080/mon-compte/parcours",
+      "actions": [
+        "wait for element #identifier to be visible",
+        "set field #identifier to participante@example.test",
+        "set field #password to mot-de-passe-de-test-123",
+        "click element button[type=submit]",
+        "wait for path to be /mon-compte/parcours"
+      ]
     }
   ]
 }

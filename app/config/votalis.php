@@ -187,6 +187,13 @@ return [
     | Identifiant du commit déployé, affiché en pied de page, et URL du dépôt.
     */
     'commit' => env('APP_COMMIT'),
+    /*
+    | Parcours personnel (lot 6) : nombre de thèmes de premier niveau pour le jalon « Exploration ».
+    */
+    'journey' => [
+        'exploration_themes' => (int) env('JOURNEY_EXPLORATION_THEMES', 5),
+    ],
+
     'repository_url' => env('APP_REPOSITORY_URL', 'https://github.com/4rn0t0m4/votalis'),
 
 ];

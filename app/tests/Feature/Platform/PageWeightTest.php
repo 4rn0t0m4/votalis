@@ -11,7 +11,7 @@ use Tests\TestCase;
 /**
  * Sobriété (CDC section 11) : poids initial d'une page publique, HTML plus feuilles de style,
  * scripts et polices référencés, sous 300 Ko. Les ressources compilées sont lues sur le disque
- * (`public/build`) ; le script Livewire est mesuré par requête.
+ * (`public/build`) ; le script Livewire (`/livewire-<empreinte>/livewire.js`) est mesuré par requête.
  */
 class PageWeightTest extends TestCase
 {
@@ -54,7 +54,7 @@ class PageWeightTest extends TestCase
 
                 if (preg_match('#^/build/.+\.(css|js|woff2?)$#', $path) === 1 && is_file(public_path($path))) {
                     $weight += (int) filesize(public_path($path));
-                } elseif (str_starts_with($path, '/livewire/') && str_ends_with($path, '.js')) {
+                } elseif (preg_match('#^/livewire(?:-[0-9a-f]+)?/.+\.js$#', $path) === 1) {
                     $weight += strlen((string) $this->get($path)->getContent());
                 }
             }

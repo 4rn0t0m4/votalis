@@ -60,6 +60,7 @@ class VoteService
                     'condition' => $condition,
                     'desirable_initial' => $desirable,
                     'necessary_initial' => $necessary,
+                    'after_arguments' => $afterArguments,
                 ]);
 
                 Proposal::query()->whereKey($proposal->id)->increment('votes_count');
@@ -81,6 +82,10 @@ class VoteService
                 $vote->revised_after_arguments = true;
             }
 
+            if ($afterArguments) {
+                $vote->after_arguments = true;
+            }
+
             $vote->save();
 
             return $vote;
@@ -89,6 +94,8 @@ class VoteService
         if ($vote->wasRecentlyCreated ? $condition !== null : $vote->wasChanged('condition')) {
             RegroupVoteConditions::dispatch($proposal->id);
         }
+
+        app(Journey::class)->evaluate($user);
 
         return $vote;
     }

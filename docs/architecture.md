@@ -176,9 +176,23 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 - **Cache sans objets** : Laravel 13 (`cache.serializable_classes = false`) ne désérialise aucun objet PHP ; `Rankings` ne met en cache que des identifiants et libellés et recharge les modèles (test de non-régression avec le magasin `file`). Règle : ne jamais mettre un modèle en cache.
 - **Dépendances** : audit bloquant en CI (`composer audit`, `npm audit --omit=dev --audit-level=high`, `pip-audit`) et `make audit-deps`.
 - **Production** : `infra/compose.prod.yml` (app, worker, scheduler `schedule:work`, nginx sur 127.0.0.1 derrière le reverse proxy TLS de l'hôte, PostgreSQL, Redis, Meilisearch, embeddings ; aucun autre port), image `infra/docker/php/Dockerfile.prod` (dépendances sans dev, ressources compilées, OPcache). Guide `docs/exploitation.md`.
+- **nginx** : la règle de cache des ressources statiques (`css|js|woff2|svg|png|jpg|ico`, 7 jours) retombe sur `index.php` quand le fichier n'existe pas, car Livewire 4 sert `/livewire-<empreinte>/livewire.js` dynamiquement ; `PageWeightTest` compte ce script dans le poids des pages.
 - **Sauvegardes** : `infra/backup/backup.sh` (pg_dump, gzip, AES-256-CBC PBKDF2 avec phrase de passe hors serveur, SHA-256, rotation) et `restore.sh` (restauration dans une base de test avec comptages). Vérifié sur la pile Docker.
 - **Charge** : scénarios k6 `infra/load/` (`make load`), latence serveur des votes `votalis:bench-votes` (`make bench-votes`). Résultats du 8 octobre 2026 sur la pile Docker locale (PHP-FPM 5 processus) : lecture publique 50 utilisateurs simultanés, p95 34 ms, 0 % d'erreur ; vote rapide connecté 8 utilisateurs, p95 103 ms ; 500 votes, p95 2,7 ms.
 - **Sécurité** : auto-évaluation ASVS niveau 2 et dossier d'audit dans `docs/securite.md`.
+
+## Lot 6 : expérience (design vivant et parcours personnel privé)
+
+| Table | Rôle |
+| --- | --- |
+| `milestones` | Jalons du parcours personnel : `participant_id` (cascade à la suppression), `key` (liste fermée `App\Enums\Milestone`, contrainte CHECK), `reached_at`, `seen_at` (célébration unique). Clé primaire composée. Jamais lue par une vue publique |
+| `votes.after_arguments` | Le vote a été posé ou révisé depuis une vue où les arguments étaient visibles (fiche, ou vote rapide après dépliage). Sert au jalon « Lecture complète », n'entre dans aucun classement |
+| `themes.icon` | Pictogramme neutre choisi par le comité dans une liste fermée (`App\Enums\ThemeIcon`) |
+
+- **Identité visuelle** : jetons Tailwind dans `resources/css/app.css` (encre, lagon = `accent`, prune = `plum`, sable = `sand`, brume = `mist`), polices système, aucune ressource externe, aucun style en ligne (CSP). Classes de composants (`btn-*`, `card*`, `pill`, `choice`, `field`, `tab`, `nav-link`, `rise`, `pop`, `reveal`) et composants Blade `x-button` (variantes, `href`), `x-card`, `x-pill`, `x-stat`, `x-icon` (tracés dans `App\View\Components\Icon`), `x-illustration` (formes abstraites SVG). Mouvement réduit honoré globalement (`prefers-reduced-motion`). Barres et anneaux dessinés en SVG avec des attributs de présentation (jamais de `style=`), largeurs en pas de 5 % générées par `@source inline`.
+- **Pages** : accueil (`HomeController`, « pouls » par `App\Services\PlatformPulse` : quatre comptages en cache 60 s, arbitrage ouvert mis en avant), thèmes en tuiles colorées (rotation de palette sans lien avec le sujet), fiche en cartes, bloc de vote à grands boutons à bascule et écran de remerciement, résultats en barres empilées, vote rapide en pile de cartes avec compteur privé du jour et barre d'actions fixée en bas sur mobile, arbitrages avec jauge expressive. Menu principal : liste large à partir de `xl`, menu déroulant `<details>` en dessous ; outils des rôles regroupés dans un menu « Outils ».
+- **Parcours personnel** : `App\Services\Journey` (`stats`, `evaluate`, `reached`, `takeFresh`, `onboarding`), appelé après `VoteService::cast`, `TradeoffService::answer`, `ProposalService::create`, et depuis `ArgumentColumn` (argument, marque « utile »). Neuf jalons qualitatifs (`App\Enums\Milestone`), règle écrite en clair, aucun jalon de volume. Page `/mon-compte/parcours` (`JourneyController`), parcours de démarrage en trois pas sur l'accueil (`partials/onboarding`), célébration `role=status` affichée une fois (dans le composant Livewire après l'action, sinon au prochain chargement de page par la mise en page). Export RGPD : bloc `parcours` ; suppression en cascade.
+- **Mécaniques écartées** (voir plan du lot 6) : points, niveaux, classement des participants, badges publics, séries quotidiennes, relances, couleurs vert/rouge pour pour/contre.
 
 ## Environnements
 
@@ -217,3 +231,6 @@ Blade pour les pages, Livewire 4 (mode CSP) pour le formulaire de proposition (`
 | 2026-10-08 | Cache des pages publiques côté application (60 s), pas d'en-tête `Cache-Control: public` | Les réponses portent toujours le cookie de session ; un cache partagé pourrait le conserver |
 | 2026-10-08 | Sauvegardes chiffrées avec openssl (AES-256-CBC, PBKDF2) plutôt que age | Outil présent partout, aucune dépendance à installer sur l'hôte |
 | 2026-10-08 | k6 exécuté dans un conteneur local, résultats consignés dans le plan | Aucune donnée ne sort ; outil libre |
+| 2026-10-08 | Gamification strictement privée et qualitative (lot 6) | « Juger les idées, pas les auteurs », pas de profil public (CDC section 2), anti-manipulation : rien ne récompense le volume ni n'étiquette un auteur |
+| 2026-10-08 | Palette lagon, prune, sable ; rouge réservé aux erreurs ; même traitement visuel pour « pour » et « contre » | Identité visuelle neutre (CDC section 12) : aucune couleur de parti représenté, aucune orientation de lecture |
+| 2026-10-08 | Illustrations et pictogrammes dessinés en interne (SVG en ligne) | Zéro dépendance, poids maîtrisé, aucune figure humaine ni symbole politique |

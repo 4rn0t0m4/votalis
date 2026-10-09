@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Account\DataController;
+use App\Http\Controllers\Account\JourneyController;
 use App\Http\Controllers\Account\ModerationController as AccountModerationController;
 use App\Http\Controllers\Account\SecurityController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Committee\ThemeController as CommitteeThemeController;
 use App\Http\Controllers\Committee\TradeoffController as CommitteeTradeoffController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Moderation\AppealController;
 use App\Http\Controllers\Moderation\CaseController;
 use App\Http\Controllers\Moderation\QueueController;
@@ -19,7 +21,7 @@ use App\Http\Controllers\TradeoffController;
 use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'home')->name('home')->middleware('cache.public');
+Route::get('/', HomeController::class)->name('home')->middleware('cache.public');
 Route::view('/comment-ca-marche', 'pages.how-it-works')->name('how-it-works');
 Route::view('/comment-fonctionne-le-classement', 'pages.ranking')->name('ranking-explained');
 Route::view('/charte-de-moderation', 'pages.charter')->name('charter');
@@ -77,6 +79,7 @@ Route::get('/arbitrages/{tradeoff}/resultats', [TradeoffController::class, 'resu
 
 Route::middleware(['auth', 'verified'])->prefix('mon-compte')->name('account.')->group(function () {
     Route::view('/', 'account.show')->name('show');
+    Route::get('/parcours', [JourneyController::class, 'show'])->name('journey');
     Route::get('/moderation', [AccountModerationController::class, 'index'])->name('moderation.index');
     Route::get('/moderation/contester/{entry}', [AccountModerationController::class, 'create'])->whereNumber('entry')->name('moderation.appeal');
     Route::post('/moderation/contester/{entry}', [AccountModerationController::class, 'store'])->whereNumber('entry')->name('moderation.appeal.store');
